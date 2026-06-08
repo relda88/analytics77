@@ -21,7 +21,7 @@ func NewServiceAnalytics(dataCenter *domain.DataCenter) *ServiceAnalytics {
 }
 
 func (s *ServiceAnalytics) RecordEvent(ev *shared.Request) []error {
-	// 1. Instant IP Extraction from the string header
+	// Instant IP Extraction from the string header
 	host, _, errHost := net.SplitHostPort(ev.RemoteAddr)
 	if errHost != nil {
 		host = ev.RemoteAddr
@@ -32,7 +32,7 @@ func (s *ServiceAnalytics) RecordEvent(ev *shared.Request) []error {
 		return []error{errParseIP}
 	}
 
-	// 2. High-speed User-Agent parsing for your top 7 browsers
+	// High-speed User-Agent parsing of top 7 browsers
 	userAgent := ev.Header["User-Agent"]
 
 	var uaString string
@@ -63,7 +63,7 @@ func (s *ServiceAnalytics) RecordEvent(ev *shared.Request) []error {
 		browser = 0 // Unknown
 	}
 
-	// 3. Extract Geo details (Passed downstream from your edge proxy headers)
+	// Extract Geo details (Passed downstream from your edge proxy headers)
 	var country, city string
 
 	if reqCountry := ev.Header["Cf-Ipcountry"]; len(reqCountry) > 0 {
@@ -73,13 +73,10 @@ func (s *ServiceAnalytics) RecordEvent(ev *shared.Request) []error {
 		city = reqCity[0]
 	}
 
-	// 4. Resolve current time slots
 	now := time.Now()
 	dayIdx := now.Day()
 	hourIdx := now.Hour()
 
-	// 5. Route directly down to the raw bits in RAM
-	// Using ev.Host as the DataCenter identifier
 	return s.DC.AddEvents(
 		&domain.ParamsAddEvent{
 			DayIdx:  dayIdx,

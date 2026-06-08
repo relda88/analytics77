@@ -2,7 +2,10 @@ package domain
 
 import (
 	"errors"
+	"fmt"
 	"net/netip"
+	"sort"
+	"strings"
 	"sync"
 	"time"
 )
@@ -39,34 +42,76 @@ func NewDataCenter() *DataCenter {
 
 type ParamsAddEvent struct {
 	SiteKey string
+	Country string
+	City    string
+
 	DayIdx  int // 1-31
 	HourIdx int // 0-23
 	IP      netip.Addr
 	Browser Browser
 	ASN     AsnEntity
-	Country string
-	City    string
+}
+
+func (e *ParamsAddEvent) Validate() []error {
+	var errs []error
+
+	if len(e.SiteKey) == 0 {
+		errs = append(errs, errors.New("site key cannot be empty"))
+	}
+
+	if len(e.Country) == 0 {
+		errs = append(errs, errors.New("country cannot be empty"))
+	}
+
+	if len(e.City) == 0 {
+		errs = append(errs, errors.New("city cannot be empty"))
+	}
+
+	if e.DayIdx < 1 || e.DayIdx > 31 {
+		errs = append(
+			errs,
+			fmt.Errorf(
+				"day index %d out of bounds (1-31)",
+				e.DayIdx,
+			),
+		)
+	}
+
+	if e.HourIdx < 0 || e.HourIdx > 23 {
+		errs = append(
+			errs,
+			fmt.Errorf(
+				"hour index %d out of bounds (0-23)",
+				e.HourIdx,
+			),
+		)
+	}
+
+	if !e.IP.IsValid() {
+		errs = append(
+			errs,
+			errors.New("invalid or missing IP address"),
+		)
+	}
+
+	if len(errs) == 0 {
+		return nil
+	}
+
+	return errs
 }
 
 func (dc *DataCenter) AddEvents(events ...*ParamsAddEvent) []error {
-	errorsBatch := make([]error, len(events))
+	errorsBatch := make([]error, 0)
 	indexesNoError := make([]int, 0, len(events))
 
 	var hasErrors bool
 
 	for ix, event := range events {
-		if event.DayIdx < 1 || event.DayIdx > 31 {
+		if errorsValidation := event.Validate(); errorsValidation != nil {
 			hasErrors = true
 
-			errorsBatch[ix] = errors.New("day index out of bounds (1-31)")
-
-			continue
-		}
-
-		if event.HourIdx < 0 || event.HourIdx > 23 {
-			hasErrors = true
-
-			errorsBatch[ix] = errors.New("hour index out of bounds (0-23)")
+			errorsValidation = append(errorsValidation, errorsValidation...)
 
 			continue
 		}
@@ -117,7 +162,38 @@ func (dc *DataCenter) AddEvents(events ...*ParamsAddEvent) []error {
 	return nil
 }
 
-func (dc *DataCenter) GetLastHourRecordsPerSite() map[string]uint32 {
+type ResponseRecordsPerSite map[string]uint32
+
+func (r ResponseRecordsPerSite) String() string {
+	if len(r) == 0 {
+		return "{}"
+	}
+
+	keys := make([]string, 0, len(r))
+
+	for k := range r {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	var builder strings.Builder
+	builder.WriteString("{")
+
+	for i, key := range keys {
+		builder.WriteString(fmt.Sprintf("%s: %d", key, r[key]))
+
+		if i < len(keys)-1 {
+			builder.WriteString(", ")
+		}
+	}
+
+	builder.WriteString("}")
+
+	return builder.String()
+}
+
+func (dc *DataCenter) GetLastHourRecordsPerSite() ResponseRecordsPerSite {
 	now := time.Now()
 
 	// Map human time to zero-based array indices

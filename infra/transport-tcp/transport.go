@@ -10,14 +10,14 @@ import (
 )
 
 type Server struct {
-	listenAddr string
-	svc        *sanalytics.ServiceAnalytics
+	listener net.Listener
+	service  *sanalytics.ServiceAnalytics
 }
 
-func NewServer(listenAddr string, service *sanalytics.ServiceAnalytics) *Server {
+func NewServer(l net.Listener, service *sanalytics.ServiceAnalytics) *Server {
 	return &Server{
-		listenAddr: listenAddr,
-		svc:        service,
+		listener: l,
+		service:  service,
 	}
 }
 
@@ -28,15 +28,13 @@ func (s *Server) handleConnection(conn net.Conn) {
 	for {
 		var batch shared.Requests
 
-		// Decode straight from the stream into memory
 		if errDecode := decoder.Decode(&batch); errDecode != nil {
 			// Expected EOF or connection reset when client disconnects
 			break
 		}
 
 		for _, request := range batch {
-			// Hand off data to the service layer safely
-			if errProcessEvent := s.svc.RecordEvent(&request); errProcessEvent != nil {
+			if errProcessEvent := s.service.RecordEvent(&request); errProcessEvent != nil {
 				log.Printf(
 					"error recording event from %s: %v",
 					conn.RemoteAddr(),
@@ -48,19 +46,15 @@ func (s *Server) handleConnection(conn net.Conn) {
 }
 
 func (s *Server) Start() error {
-	listener, errListen := net.Listen("tcp", s.listenAddr)
-	if errListen != nil {
-		return errListen
-	}
-	defer listener.Close()
-
-	log.Printf("TCP transport server listening on %s", s.listenAddr)
+	log.Printf(
+		"TCP transport server listening on %s",
+		s.listener.Addr().String(),
+	)
 
 	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			log.Printf("failed to accept connection: %v", err)
-			continue
+		conn, errListenAccept := s.listener.Accept()
+		if errListenAccept != nil {
+			return errListenAccept
 		}
 
 		go s.handleConnection(conn)

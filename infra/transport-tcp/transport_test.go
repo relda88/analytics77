@@ -59,11 +59,15 @@ func TestTransport_TCP(t *testing.T) {
 		t.Run(
 			tc.description,
 			func(t *testing.T) {
+				listener, errListener := net.Listen("tcp", "127.0.0.1:0")
+				if errListener != nil {
+					t.Fatalf("failed to create listener: %v", errListener)
+				}
+
 				serviceAnalytics := sanalytics.NewServiceAnalytics(domain.NewDataCenter())
 
-				// Use :0 to let the OS assign a random, free TCP port dynamically
 				server := NewServer(
-					"127.0.0.1:0",
+					listener,
 					serviceAnalytics,
 				)
 
@@ -77,9 +81,9 @@ func TestTransport_TCP(t *testing.T) {
 				time.Sleep(10 * time.Millisecond)
 
 				// Connect to the real TCP port
-				connClient, err := net.Dial("tcp", server.listenAddr)
-				if err != nil {
-					t.Fatalf("failed to dial server: %v", err)
+				connClient, errListener := net.Dial("tcp", server.listener.Addr().String())
+				if errListener != nil {
+					t.Fatalf("failed to dial server: %v", errListener)
 				}
 
 				// 3. Send the data over the transport
@@ -94,9 +98,13 @@ func TestTransport_TCP(t *testing.T) {
 				// Give the goroutine a moment to finish iterating and calling RecordEvent
 				time.Sleep(5 * time.Millisecond)
 
-				require.Len(t,
-					serviceAnalytics.DC.GetLastHourRecordsPerSite(),
-					tc.expectedCount,
+				require.Eventually(t,
+					func() bool {
+						return len(serviceAnalytics.DC.GetLastHourRecordsPerSite()) == tc.expectedCount
+					},
+					1*time.Second,
+					10*time.Millisecond,
+					serviceAnalytics.DC.GetLastHourRecordsPerSite().String(),
 				)
 			},
 		)

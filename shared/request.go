@@ -10,11 +10,12 @@ func init() {
 }
 
 type Request struct {
-	RemoteAddr string
-	Host       string
-	Method     string
-	URL        *url.URL
-	Header     map[string][]string
+	RemoteAddr    string
+	Host          string
+	Method        string
+	URL           *url.URL
+	Header        map[string][]string
+	TimestampUNIX int64
 }
 
 type Requests []Request
