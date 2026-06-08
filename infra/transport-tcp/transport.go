@@ -21,11 +21,36 @@ func NewServer(listenAddr string, service *sanalytics.ServiceAnalytics) *Server 
 	}
 }
 
-// Start kicks off the TCP listener and blocks while accepting connections
+func (s *Server) handleConnection(conn net.Conn) {
+	defer conn.Close()
+	decoder := gob.NewDecoder(conn)
+
+	for {
+		var batch shared.Requests
+
+		// Decode straight from the stream into memory
+		if errDecode := decoder.Decode(&batch); errDecode != nil {
+			// Expected EOF or connection reset when client disconnects
+			break
+		}
+
+		for _, request := range batch {
+			// Hand off data to the service layer safely
+			if errProcessEvent := s.svc.RecordEvent(&request); errProcessEvent != nil {
+				log.Printf(
+					"error recording event from %s: %v",
+					conn.RemoteAddr(),
+					errProcessEvent,
+				)
+			}
+		}
+	}
+}
+
 func (s *Server) Start() error {
-	listener, err := net.Listen("tcp", s.listenAddr)
-	if err != nil {
-		return err
+	listener, errListen := net.Listen("tcp", s.listenAddr)
+	if errListen != nil {
+		return errListen
 	}
 	defer listener.Close()
 
@@ -39,25 +64,5 @@ func (s *Server) Start() error {
 		}
 
 		go s.handleConnection(conn)
-	}
-}
-
-func (s *Server) handleConnection(conn net.Conn) {
-	defer conn.Close()
-	decoder := gob.NewDecoder(conn)
-
-	for {
-		var req shared.FlatRequest
-
-		// Decode straight from the stream into memory
-		if errDecode := decoder.Decode(&req); errDecode != nil {
-			// Expected EOF or connection reset when client disconnects
-			break
-		}
-
-		// Hand off data to the service layer safely
-		if errProcessEvent := s.svc.RecordEvent(&req); errProcessEvent != nil {
-			log.Printf("error recording event from %s: %v", conn.RemoteAddr(), errProcessEvent)
-		}
 	}
 }

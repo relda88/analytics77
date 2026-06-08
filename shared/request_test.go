@@ -6,7 +6,7 @@ import (
 )
 
 func ForwardAnalytics(r *http.Request, encoder *gob.Encoder) error {
-	flat := FlatRequest{
+	flat := Request{
 		RemoteAddr: r.RemoteAddr,
 		Host:       r.Host,
 		Method:     r.Method,

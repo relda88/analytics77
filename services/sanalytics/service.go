@@ -11,16 +11,16 @@ import (
 )
 
 type ServiceAnalytics struct {
-	dc *domain.DataCenter
+	DC *domain.DataCenter
 }
 
 func NewServiceAnalytics(dataCenter *domain.DataCenter) *ServiceAnalytics {
 	return &ServiceAnalytics{
-		dc: dataCenter,
+		DC: dataCenter,
 	}
 }
 
-func (s *ServiceAnalytics) RecordEvent(ev *shared.FlatRequest) error {
+func (s *ServiceAnalytics) RecordEvent(ev *shared.Request) []error {
 	// 1. Instant IP Extraction from the string header
 	host, _, errHost := net.SplitHostPort(ev.RemoteAddr)
 	if errHost != nil {
@@ -29,7 +29,7 @@ func (s *ServiceAnalytics) RecordEvent(ev *shared.FlatRequest) error {
 
 	ip, errParseIP := netip.ParseAddr(host)
 	if errParseIP != nil {
-		return errParseIP
+		return []error{errParseIP}
 	}
 
 	// 2. High-speed User-Agent parsing for your top 7 browsers
@@ -80,7 +80,7 @@ func (s *ServiceAnalytics) RecordEvent(ev *shared.FlatRequest) error {
 
 	// 5. Route directly down to the raw bits in RAM
 	// Using ev.Host as the DataCenter identifier
-	return s.dc.AddEvent(
+	return s.DC.AddEvents(
 		&domain.ParamsAddEvent{
 			DayIdx:  dayIdx,
 			HourIdx: hourIdx,
