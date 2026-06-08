@@ -1,37 +1,26 @@
 package sanalytics
 
 import (
-	"encoding/gob"
 	"net"
 	"net/netip"
 	"strings"
 	"time"
 
-	"github.com/tudorhulban/site/analytics/domain"
-	"github.com/tudorhulban/site/analytics/shared"
+	"github.com/TudorHulban/analytics77/domain"
+	"github.com/TudorHulban/analytics77/shared"
 )
 
-type AnalyticsService struct {
-	DC domain.DataCenter
+type ServiceAnalytics struct {
+	dc *domain.DataCenter
 }
 
-func (s *AnalyticsService) HandleConnection(conn net.Conn) {
-	defer conn.Close()
-	decoder := gob.NewDecoder(conn)
-
-	for {
-		var req shared.FlatRequest
-		// Decodes the incoming binary stream straight back into RAM
-		if err := decoder.Decode(&req); err != nil {
-			break // Connection closed or error
-		}
-
-		// Feed the flat request details directly into your matrix logic
-		s.RecordEvent(&req)
+func NewServiceAnalytics(dataCenter *domain.DataCenter) *ServiceAnalytics {
+	return &ServiceAnalytics{
+		dc: dataCenter,
 	}
 }
 
-func (s *AnalyticsService) RecordEvent(ev *shared.FlatRequest) error {
+func (s *ServiceAnalytics) RecordEvent(ev *shared.FlatRequest) error {
 	// 1. Instant IP Extraction from the string header
 	host, _, errHost := net.SplitHostPort(ev.RemoteAddr)
 	if errHost != nil {
@@ -45,7 +34,9 @@ func (s *AnalyticsService) RecordEvent(ev *shared.FlatRequest) error {
 
 	// 2. High-speed User-Agent parsing for your top 7 browsers
 	userAgent := ev.Header["User-Agent"]
+
 	var uaString string
+
 	if len(userAgent) > 0 {
 		uaString = userAgent[0]
 	}
@@ -89,7 +80,7 @@ func (s *AnalyticsService) RecordEvent(ev *shared.FlatRequest) error {
 
 	// 5. Route directly down to the raw bits in RAM
 	// Using ev.Host as the DataCenter identifier
-	return s.DC.AddEvent(
+	return s.dc.AddEvent(
 		&domain.ParamsAddEvent{
 			DayIdx:  dayIdx,
 			HourIdx: hourIdx,

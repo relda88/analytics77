@@ -3,6 +3,7 @@ package domain
 import (
 	"errors"
 	"net/netip"
+	"sync"
 )
 
 type Metric struct {
@@ -12,6 +13,7 @@ type Metric struct {
 	TopASN           Meta[AsnEntity]
 	TopCountries     Meta[string]
 	TopCities        Meta[string]
+	TopURL           Meta[string]
 }
 
 type Day [24]Metric
@@ -21,7 +23,16 @@ type Registry struct {
 	History      [7][31]Day
 }
 
-type DataCenter map[string]*Registry
+type DataCenter struct {
+	data map[string]*Registry
+	mu   sync.Mutex
+}
+
+func NewDataCenter() *DataCenter {
+	return &DataCenter{
+		data: map[string]*Registry{},
+	}
+}
 
 type ParamsAddEvent struct {
 	SiteKey string
@@ -34,20 +45,23 @@ type ParamsAddEvent struct {
 	City    string
 }
 
-func (dc DataCenter) AddEvent(params *ParamsAddEvent) error {
+func (dc *DataCenter) AddEvent(params *ParamsAddEvent) error {
 	// 1. Defensive Boundary Checks (Crucial for fixed array indices)
 	if params.DayIdx < 1 || params.DayIdx > 31 {
 		return errors.New("day index out of bounds (1-31)")
 	}
+
 	if params.HourIdx < 0 || params.HourIdx > 23 {
 		return errors.New("hour index out of bounds (0-23)")
 	}
 
+	dc.mu.Lock()
+
 	// 2. O(1) Fetch or Allocate the Registry for this site/datacenter
-	reg, exists := dc[params.SiteKey]
+	reg, exists := dc.data[params.SiteKey]
 	if !exists {
 		reg = &Registry{}
-		dc[params.SiteKey] = reg
+		dc.data[params.SiteKey] = reg
 	}
 
 	// 3. Drill down directly to the exact memory address in the matrix
@@ -64,9 +78,12 @@ func (dc DataCenter) AddEvent(params *ParamsAddEvent) error {
 	if params.Country != "" {
 		metricSlot.TopCountries.Increment(params.Country)
 	}
+
 	if params.City != "" {
 		metricSlot.TopCities.Increment(params.City)
 	}
+
+	dc.mu.Unlock()
 
 	return nil
 }
