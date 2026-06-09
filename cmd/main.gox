@@ -27,7 +27,7 @@ func main() {
 		log.Fatalf("failed to create listener: %v", errListener)
 	}
 
-	transportTCP := transporttcp.NewServer(
+	transportTCP := transporttcp.NewTransportTCP(
 		listener,
 		serviceAnalytics,
 	)

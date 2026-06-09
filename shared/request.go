@@ -2,6 +2,7 @@ package shared
 
 import (
 	"encoding/gob"
+	"errors"
 	"net"
 	"net/netip"
 	"net/url"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/TudorHulban/analytics77/domain"
 	"github.com/TudorHulban/analytics77/helpers"
+	"github.com/TudorHulban/analytics77/services/sgeo"
 
 	"github.com/tudorhulban/hxhelpers"
 )
@@ -28,7 +30,23 @@ type Request struct {
 	OffsetUTC     int64
 }
 
-func (req Request) AsParamsAddEvent(offsets *helpers.TimestampOffsets) (*domain.ParamsAddEvent, error) {
+type PiersAsParamsAddEvent struct {
+	Offsets    *helpers.TimestampOffsets
+	ServiceGeo *sgeo.ServiceGeo
+}
+
+func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*domain.ParamsAddEvent, error) {
+	if piers.Offsets == nil {
+		return nil, errors.New(
+			"AsParamsAddEvent - passed offsets is nil",
+		)
+	}
+	if piers.ServiceGeo == nil {
+		return nil, errors.New(
+			"AsParamsAddEvent - passed ServiceGeo is nil",
+		)
+	}
+
 	host, _, errHost := net.SplitHostPort(req.RemoteAddr)
 	if errHost != nil {
 		host = req.RemoteAddr
@@ -70,37 +88,39 @@ func (req Request) AsParamsAddEvent(offsets *helpers.TimestampOffsets) (*domain.
 		browser = 0
 	}
 
-	var country, city string
-
-	if reqCountry := req.Header["Cf-Ipcountry"]; len(reqCountry) > 0 {
-		country = reqCountry[0]
-	}
-	if reqCity := req.Header["X-Client-City"]; len(reqCity) > 0 {
-		city = reqCity[0]
+	responseGeo, errGeo := piers.ServiceGeo.GetIPGeo(ip)
+	if errGeo != nil {
+		return nil, errGeo //TODO: review
 	}
 
 	ixDay, ixHour := helpers.ExtractDayAndHour(
 		req.TimestampUNIX,
 		&helpers.TimestampOffsets{
-			TimestampDSTWinter: offsets.TimestampDSTWinter,
-			TimestampDSTSpring: offsets.TimestampDSTSpring,
+			TimestampDSTWinter: piers.Offsets.TimestampDSTWinter,
+			TimestampDSTSpring: piers.Offsets.TimestampDSTSpring,
 
 			OffsetUTC: hxhelpers.Ternary(
 				req.OffsetUTC > 0,
 
 				req.OffsetUTC,
-				offsets.OffsetUTC,
+				piers.Offsets.OffsetUTC,
 			),
 		},
 	)
 
 	return &domain.ParamsAddEvent{
+			SiteKey: host,
+			Country: responseGeo.Country,
+			City:    responseGeo.City,
+
 			DayOfMonth: ixDay,
 			HourOfDay:  ixHour,
 			IP:         ip,
 			Browser:    browser,
-			Country:    country,
-			City:       city,
+
+			ASN: domain.AsnEntity{
+				Name: responseGeo.ASN,
+			},
 		},
 		nil
 }

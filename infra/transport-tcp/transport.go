@@ -9,19 +9,23 @@ import (
 	"github.com/TudorHulban/analytics77/shared"
 )
 
-type Server struct {
+type TransportTCP struct {
 	listener net.Listener
 	service  *sanalytics.ServiceAnalytics
 }
 
-func NewServer(l net.Listener, service *sanalytics.ServiceAnalytics) *Server {
-	return &Server{
+func NewTransportTCP(l net.Listener, service *sanalytics.ServiceAnalytics) *TransportTCP {
+	return &TransportTCP{
 		listener: l,
 		service:  service,
 	}
 }
 
-func (s *Server) handleConnection(conn net.Conn) {
+func (s *TransportTCP) GetListeningAddress() string {
+	return s.listener.Addr().String()
+}
+
+func (s *TransportTCP) handleConnection(conn net.Conn) {
 	defer conn.Close()
 	decoder := gob.NewDecoder(conn)
 
@@ -51,7 +55,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 	}
 }
 
-func (s *Server) Start() error {
+func (s *TransportTCP) Start() error {
 	log.Printf(
 		"TCP transport server listening on %s",
 		s.listener.Addr().String(),

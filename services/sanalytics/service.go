@@ -5,6 +5,7 @@ import (
 
 	"github.com/TudorHulban/analytics77/domain"
 	"github.com/TudorHulban/analytics77/helpers"
+	"github.com/TudorHulban/analytics77/services/sgeo"
 	"github.com/TudorHulban/analytics77/shared"
 )
 
@@ -12,11 +13,20 @@ import (
 type ServiceAnalytics struct {
 	DC      *domain.DataCenter
 	offsets *helpers.TimestampOffsets
+
+	serviceGeo *sgeo.ServiceGeo
 }
 
-func NewServiceAnalytics(dataCenter *domain.DataCenter, offsets *helpers.TimestampOffsets) *ServiceAnalytics {
+type PiersNewServiceAnalytics struct {
+	DC         *domain.DataCenter
+	ServiceGeo *sgeo.ServiceGeo
+}
+
+func NewServiceAnalytics(piers *PiersNewServiceAnalytics, offsets *helpers.TimestampOffsets) *ServiceAnalytics {
 	return &ServiceAnalytics{
-		DC:      dataCenter,
+		DC:         piers.DC,
+		serviceGeo: piers.ServiceGeo,
+
 		offsets: offsets,
 	}
 }
@@ -27,7 +37,12 @@ func (s *ServiceAnalytics) RecordEvents(events shared.Requests) ([]error, []erro
 	validEvents := make([]*domain.ParamsAddEvent, 0, len(events))
 
 	for ix, event := range events {
-		param, errTransformation := event.AsParamsAddEvent(s.offsets)
+		param, errTransformation := event.AsParamsAddEvent(
+			&shared.PiersAsParamsAddEvent{
+				Offsets:    s.offsets,
+				ServiceGeo: s.serviceGeo,
+			},
+		)
 		if errTransformation != nil {
 			errorsTransformation = append(
 				errorsTransformation,

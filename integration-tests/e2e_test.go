@@ -1,4 +1,4 @@
-package transporttcp
+package integrationtests
 
 import (
 	"encoding/gob"
@@ -10,17 +10,36 @@ import (
 
 	"github.com/TudorHulban/analytics77/domain"
 	"github.com/TudorHulban/analytics77/helpers"
+	transporttcp "github.com/TudorHulban/analytics77/infra/transport-tcp"
 	"github.com/TudorHulban/analytics77/services/sanalytics"
+	"github.com/TudorHulban/analytics77/services/sgeo"
+	"github.com/TudorHulban/analytics77/services/sstorage"
 	"github.com/TudorHulban/analytics77/shared"
 	"github.com/stretchr/testify/require"
 )
 
-func TestTransport_TCP(t *testing.T) {
-	dummyURL, _ := url.Parse("https://example.com/analytics")
+func TestAnalytics_E2E(t *testing.T) {
+	dc := domain.NewDataCenter()
+	require.NotNil(t, dc)
 
-	offsets := helpers.TimestampOffsets{
+	offsetsROU := helpers.TimestampOffsets{
 		OffsetUTC: -3,
 	}
+
+	serviceGeo, errSvcGeo := sgeo.NewServiceGeo(sstorage.NewServiceStorage())
+	require.NoError(t, errSvcGeo)
+	require.NotNil(t, serviceGeo)
+
+	serviceAnalytics := sanalytics.NewServiceAnalytics(
+		&sanalytics.PiersNewServiceAnalytics{
+			DC:         dc,
+			ServiceGeo: serviceGeo,
+		},
+		&offsetsROU,
+	)
+	require.NotNil(t, serviceAnalytics)
+
+	dummyURL, _ := url.Parse("https://example.com/analytics")
 
 	tests := []struct {
 		description   string
@@ -31,7 +50,7 @@ func TestTransport_TCP(t *testing.T) {
 			description: "1. Send single request",
 			inputRequests: shared.Requests{
 				{
-					RemoteAddr: "1.1.1.1",
+					RemoteAddr: "82.77.237.37",
 					Host:       "example.com",
 					Method:     "POST",
 					URL:        dummyURL,
@@ -44,13 +63,13 @@ func TestTransport_TCP(t *testing.T) {
 			description: "2. Send multiple requests in one batch",
 			inputRequests: shared.Requests{
 				{
-					RemoteAddr: "2.2.2.2",
+					RemoteAddr: "82.77.237.38",
 					Host:       "api.com",
 					Method:     "GET",
 					URL:        dummyURL,
 				},
 				{
-					RemoteAddr: "8.8.8.8",
+					RemoteAddr: "82.77.237.39",
 					Host:       "metrics.com",
 					Method:     "PUT",
 					URL:        dummyURL,
@@ -67,20 +86,13 @@ func TestTransport_TCP(t *testing.T) {
 				listener, errListener := net.Listen("tcp", "127.0.0.1:0")
 				require.NoError(t, errListener)
 
-				serviceAnalytics := sanalytics.NewServiceAnalytics(
-					&sanalytics.PiersNewServiceAnalytics{
-						DC: domain.NewDataCenter(),
-					},
-					&offsets,
-				)
-
-				server := NewTransportTCP(
+				transportTCP := transporttcp.NewTransportTCP(
 					listener,
 					serviceAnalytics,
 				)
 
 				go func() {
-					if errServerStart := server.Start(); errServerStart != nil {
+					if errServerStart := transportTCP.Start(); errServerStart != nil {
 						log.Printf("server stopped: %v", errServerStart)
 					}
 				}()
@@ -88,26 +100,31 @@ func TestTransport_TCP(t *testing.T) {
 				// Give the OS a tiny moment to bind the socket
 				time.Sleep(10 * time.Millisecond)
 
-				connClient, errListener := net.Dial("tcp", server.listener.Addr().String())
+				connClient, errListener := net.Dial(
+					"tcp",
+					transportTCP.GetListeningAddress(),
+				)
 				require.NoError(t, errListener)
+				require.NotZero(t, connClient)
 
 				require.NoError(t,
 					gob.NewEncoder(connClient).Encode(&tc.inputRequests),
 				)
 
-				// Close to flush and trigger EOF on the server side
 				connClient.Close()
 
 				require.Eventually(t,
 					func() bool {
-						return len(serviceAnalytics.DC.GetLastHourRecordsPerSite(&offsets)) == tc.expectedCount
+						return len(serviceAnalytics.DC.GetLastHourRecordsPerSite(&offsetsROU)) == tc.expectedCount
 					},
 
 					1*time.Second,
 					10*time.Millisecond,
 					serviceAnalytics.
 						DC.
-						GetLastHourRecordsPerSite(&offsets).String(),
+						GetLastHourRecordsPerSite(&offsetsROU).String(),
+
+					serviceAnalytics.DC.String(),
 				)
 			},
 		)
