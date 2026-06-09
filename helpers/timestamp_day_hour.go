@@ -7,13 +7,13 @@ type TimestampOffsets struct {
 	TimestampDSTSpring int64 // Epoch when DST starts (springs forward to summer time)
 }
 
-func ExtractDayAndHour(timestamp int64, offsets *TimestampOffsets) (day int, hour int) {
+func ExtractDayAndHour(timestampUTC int64, offsets *TimestampOffsets) (day int, hour int) {
 	// Start with base timestamp + standard offset
-	localTimestamp := timestamp + offsets.OffsetUTC
+	localTimestamp := timestampUTC + offsets.OffsetUTC
 
 	// Check if the timestamp falls within the DST active window.
 	// If it does, we inject the extra 1 hour (3600 seconds) savings.
-	if timestamp >= offsets.TimestampDSTSpring && timestamp < offsets.TimestampDSTWinter {
+	if timestampUTC >= offsets.TimestampDSTSpring && timestampUTC < offsets.TimestampDSTWinter {
 		localTimestamp = localTimestamp + 3600
 	}
 

@@ -1,6 +1,8 @@
 package sanalytics
 
 import (
+	"fmt"
+
 	"github.com/TudorHulban/analytics77/domain"
 	"github.com/TudorHulban/analytics77/helpers"
 	"github.com/TudorHulban/analytics77/shared"
@@ -12,20 +14,29 @@ type ServiceAnalytics struct {
 	offsets *helpers.TimestampOffsets
 }
 
-func NewServiceAnalytics(dataCenter *domain.DataCenter) *ServiceAnalytics {
+func NewServiceAnalytics(dataCenter *domain.DataCenter, offsets *helpers.TimestampOffsets) *ServiceAnalytics {
 	return &ServiceAnalytics{
-		DC: dataCenter,
+		DC:      dataCenter,
+		offsets: offsets,
 	}
 }
 
+// RecordEvents returns transformation and validation / processing errors.
 func (s *ServiceAnalytics) RecordEvents(events shared.Requests) ([]error, []error) {
-	errorsValidation := make([]error, 0, len(events))
+	errorsTransformation := make([]error, 0, len(events))
 	validEvents := make([]*domain.ParamsAddEvent, 0, len(events))
 
-	for _, request := range events {
-		param, errTransformation := request.AsParamsAddEvent(s.offsets)
+	for ix, event := range events {
+		param, errTransformation := event.AsParamsAddEvent(s.offsets)
 		if errTransformation != nil {
-			errorsValidation = append(errorsValidation, errTransformation)
+			errorsTransformation = append(
+				errorsTransformation,
+				fmt.Errorf(
+					"transformation error for event %d:%w",
+					ix,
+					errTransformation,
+				),
+			)
 
 			continue
 		}
@@ -34,11 +45,11 @@ func (s *ServiceAnalytics) RecordEvents(events shared.Requests) ([]error, []erro
 	}
 
 	if len(validEvents) == 0 {
-		return errorsValidation,
+		return errorsTransformation,
 			nil
 	}
 
 	errorsProcess := s.DC.AddEvents(validEvents...)
 
-	return errorsValidation, errorsProcess
+	return errorsTransformation, errorsProcess
 }

@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/TudorHulban/analytics77/domain"
+	"github.com/TudorHulban/analytics77/helpers"
 	transporttcp "github.com/TudorHulban/analytics77/infra/transport-tcp"
 	"github.com/TudorHulban/analytics77/services/sanalytics"
 	// Ensure you import your domain or storage implementation package here
@@ -13,9 +14,13 @@ import (
 func main() {
 	log.Println("Initializing Analytics Application...")
 
+	offsets := helpers.TimestampOffsets{
+		OffsetUTC: -3,
+	}
+
 	dc := domain.NewDataCenter()
 
-	serviceAnalytics := sanalytics.NewServiceAnalytics(dc)
+	serviceAnalytics := sanalytics.NewServiceAnalytics(dc, &offsets)
 
 	listener, errListener := net.Listen("tcp", "127.0.0.1:8000")
 	if errListener != nil {

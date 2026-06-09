@@ -9,6 +9,8 @@ import (
 
 	"github.com/TudorHulban/analytics77/domain"
 	"github.com/TudorHulban/analytics77/helpers"
+
+	"github.com/tudorhulban/hxhelpers"
 )
 
 func init() {
@@ -16,12 +18,14 @@ func init() {
 }
 
 type Request struct {
-	RemoteAddr    string
-	Host          string
-	Method        string
-	URL           *url.URL
-	Header        map[string][]string
+	RemoteAddr string
+	Host       string
+	Method     string
+	URL        *url.URL
+	Header     map[string][]string
+
 	TimestampUNIX int64
+	OffsetUTC     int64
 }
 
 func (req Request) AsParamsAddEvent(offsets *helpers.TimestampOffsets) (*domain.ParamsAddEvent, error) {
@@ -77,16 +81,26 @@ func (req Request) AsParamsAddEvent(offsets *helpers.TimestampOffsets) (*domain.
 
 	ixDay, ixHour := helpers.ExtractDayAndHour(
 		req.TimestampUNIX,
-		offsets,
+		&helpers.TimestampOffsets{
+			TimestampDSTWinter: offsets.TimestampDSTWinter,
+			TimestampDSTSpring: offsets.TimestampDSTSpring,
+
+			OffsetUTC: hxhelpers.Ternary(
+				req.OffsetUTC > 0,
+
+				req.OffsetUTC,
+				offsets.OffsetUTC,
+			),
+		},
 	)
 
 	return &domain.ParamsAddEvent{
-			DayIdx:  ixDay,
-			HourIdx: ixHour,
-			IP:      ip,
-			Browser: browser,
-			Country: country,
-			City:    city,
+			DayOfMonth: ixDay,
+			HourOfDay:  ixHour,
+			IP:         ip,
+			Browser:    browser,
+			Country:    country,
+			City:       city,
 		},
 		nil
 }

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/TudorHulban/analytics77/domain"
+	"github.com/TudorHulban/analytics77/helpers"
 	"github.com/TudorHulban/analytics77/services/sanalytics"
 	"github.com/TudorHulban/analytics77/shared"
 	"github.com/stretchr/testify/require"
@@ -16,6 +17,10 @@ import (
 
 func TestTransport_TCP(t *testing.T) {
 	dummyURL, _ := url.Parse("https://example.com/analytics")
+
+	offsets := helpers.TimestampOffsets{
+		OffsetUTC: -3,
+	}
 
 	tests := []struct {
 		description   string
@@ -26,7 +31,7 @@ func TestTransport_TCP(t *testing.T) {
 			description: "1. Send single request",
 			inputRequests: shared.Requests{
 				{
-					RemoteAddr: "192.168.1.1:5000",
+					RemoteAddr: "1.1.1.1",
 					Host:       "example.com",
 					Method:     "POST",
 					URL:        dummyURL,
@@ -39,13 +44,13 @@ func TestTransport_TCP(t *testing.T) {
 			description: "2. Send multiple requests in one batch",
 			inputRequests: shared.Requests{
 				{
-					RemoteAddr: "192.168.1.2:5001",
+					RemoteAddr: "2.2.2.2",
 					Host:       "api.com",
 					Method:     "GET",
 					URL:        dummyURL,
 				},
 				{
-					RemoteAddr: "192.168.1.3:5002",
+					RemoteAddr: "8.8.8.8",
 					Host:       "metrics.com",
 					Method:     "PUT",
 					URL:        dummyURL,
@@ -60,11 +65,12 @@ func TestTransport_TCP(t *testing.T) {
 			tc.description,
 			func(t *testing.T) {
 				listener, errListener := net.Listen("tcp", "127.0.0.1:0")
-				if errListener != nil {
-					t.Fatalf("failed to create listener: %v", errListener)
-				}
+				require.NoError(t, errListener)
 
-				serviceAnalytics := sanalytics.NewServiceAnalytics(domain.NewDataCenter())
+				serviceAnalytics := sanalytics.NewServiceAnalytics(
+					domain.NewDataCenter(),
+					&offsets,
+				)
 
 				server := NewServer(
 					listener,
@@ -81,26 +87,25 @@ func TestTransport_TCP(t *testing.T) {
 				time.Sleep(10 * time.Millisecond)
 
 				connClient, errListener := net.Dial("tcp", server.listener.Addr().String())
-				if errListener != nil {
-					t.Fatalf("failed to dial server: %v", errListener)
-				}
+				require.NoError(t, errListener)
 
-				if err := gob.
-					NewEncoder(connClient).
-					Encode(&tc.inputRequests); err != nil {
-					t.Fatalf("transport encoding failed: %v", err)
-				}
+				require.NoError(t,
+					gob.NewEncoder(connClient).Encode(&tc.inputRequests),
+				)
 
 				// Close to flush and trigger EOF on the server side
 				connClient.Close()
 
 				require.Eventually(t,
 					func() bool {
-						return len(serviceAnalytics.DC.GetLastHourRecordsPerSite()) == tc.expectedCount
+						return len(serviceAnalytics.DC.GetLastHourRecordsPerSite(&offsets)) == tc.expectedCount
 					},
+
 					1*time.Second,
 					10*time.Millisecond,
-					serviceAnalytics.DC.GetLastHourRecordsPerSite().String(),
+					serviceAnalytics.
+						DC.
+						GetLastHourRecordsPerSite(&offsets).String(),
 				)
 			},
 		)

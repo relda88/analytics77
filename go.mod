@@ -1,8 +1,11 @@
 module github.com/TudorHulban/analytics77
 
-go 1.25.0
+go 1.26
 
-require github.com/stretchr/testify v1.11.1
+require (
+	github.com/stretchr/testify v1.11.1
+	github.com/tudorhulban/hxhelpers v0.0.0-20260609115825-0b637977f526
+)
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
