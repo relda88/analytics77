@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net"
 
 	"github.com/TudorHulban/analytics77/domain"
 	transporttcp "github.com/TudorHulban/analytics77/infra/transport-tcp"
@@ -16,12 +17,16 @@ func main() {
 
 	serviceAnalytics := sanalytics.NewServiceAnalytics(dc)
 
+	listener, errListener := net.Listen("tcp", "127.0.0.1:8000")
+	if errListener != nil {
+		log.Fatalf("failed to create listener: %v", errListener)
+	}
+
 	transportTCP := transporttcp.NewServer(
-		":8080",
+		listener,
 		serviceAnalytics,
 	)
 
-	// 4. Start listening
 	if err := transportTCP.Start(); err != nil {
 		log.Fatalf("Fatal error running TCP server: %v", err)
 	}

@@ -31,7 +31,7 @@ type Registry struct {
 
 type DataCenter struct {
 	data map[string]*Registry
-	mu   sync.Mutex
+	mu   sync.RWMutex
 }
 
 func NewDataCenter() *DataCenter {
@@ -111,7 +111,7 @@ func (dc *DataCenter) AddEvents(events ...*ParamsAddEvent) []error {
 		if errorsValidation := event.Validate(); errorsValidation != nil {
 			hasErrors = true
 
-			errorsValidation = append(errorsValidation, errorsValidation...)
+			errorsBatch = append(errorsBatch, errorsValidation...)
 
 			continue
 		}

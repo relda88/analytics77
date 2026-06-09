@@ -5,15 +5,16 @@ import "testing"
 func TestExtractDayAndHour(t *testing.T) {
 	tests := []struct {
 		name         string
-		params       ParamsExtractDayAndHour
+		timestamp    int64
+		offsets      TimestampOffsets
 		expectedDay  int
 		expectedHour int
 	}{
 		{
 			name: "1. Pure UTC - No Offset, Mid-day",
-			params: ParamsExtractDayAndHour{
+			offsets: ParamsExtractDayAndHour{
 				Timestamp:          1780932600, // 2026-06-08 15:30:00 UTC
-				Offset:             0,
+				OffsetUTC:          0,
 				TimestampDSTSpring: 0,
 				TimestampDSTWinter: 0,
 			},
@@ -22,9 +23,9 @@ func TestExtractDayAndHour(t *testing.T) {
 		},
 		{
 			name: "2. New York Standard Time (-5h) - No DST active",
-			params: ParamsExtractDayAndHour{
+			offsets: ParamsExtractDayAndHour{
 				Timestamp:          1767225600, // 2026-01-01 00:00:00 UTC
-				Offset:             -18000,     // -5 hours
+				OffsetUTC:          -18000,     // -5 hours
 				TimestampDSTSpring: 1773481200, // March DST (future)
 				TimestampDSTWinter: 1761901200, // Nov DST (past)
 			},
@@ -33,9 +34,9 @@ func TestExtractDayAndHour(t *testing.T) {
 		},
 		{
 			name: "3. London Summer Time (+1h DST Active)",
-			params: ParamsExtractDayAndHour{
+			offsets: ParamsExtractDayAndHour{
 				Timestamp:          1780932600, // 2026-06-08 15:30:00 UTC
-				Offset:             0,          // London standard is 0
+				OffsetUTC:          0,          // London standard is 0
 				TimestampDSTSpring: 1774755600, // March 29, 2026 01:00:00 UTC
 				TimestampDSTWinter: 1792890000, // October 25, 2026 01:00:00 UTC
 			},
@@ -44,9 +45,9 @@ func TestExtractDayAndHour(t *testing.T) {
 		},
 		{
 			name: "4. Exactly on DST Spring Boundary Start",
-			params: ParamsExtractDayAndHour{
+			offsets: ParamsExtractDayAndHour{
 				Timestamp:          1774746000, // 2026-03-29 01:00:00 UTC ✓
-				Offset:             0,
+				OffsetUTC:          0,
 				TimestampDSTSpring: 1774746000,
 				TimestampDSTWinter: 1792890000,
 			},
@@ -55,9 +56,9 @@ func TestExtractDayAndHour(t *testing.T) {
 		},
 		{
 			name: "5. Exactly on DST Winter Boundary End (Back to Standard)",
-			params: ParamsExtractDayAndHour{
+			offsets: ParamsExtractDayAndHour{
 				Timestamp:          1792890000, // 2026-10-25 01:00:00 UTC ✓
-				Offset:             0,
+				OffsetUTC:          0,
 				TimestampDSTSpring: 1774746000,
 				TimestampDSTWinter: 1792890000,
 			},
@@ -70,7 +71,7 @@ func TestExtractDayAndHour(t *testing.T) {
 		t.Run(
 			tc.name,
 			func(b *testing.T) {
-				day, hour := ExtractDayAndHour(&tc.params)
+				day, hour := ExtractDayAndHour(&tc.offsets)
 
 				if day != tc.expectedDay || hour != tc.expectedHour {
 					t.Errorf(

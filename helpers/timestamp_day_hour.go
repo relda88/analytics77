@@ -1,20 +1,19 @@
 package helpers
 
-type ParamsExtractDayAndHour struct {
-	Timestamp int64
-	Offset    int64
+type TimestampOffsets struct {
+	OffsetUTC int64
 
 	TimestampDSTWinter int64 // Epoch when DST ends (falls back to winter/standard time)
 	TimestampDSTSpring int64 // Epoch when DST starts (springs forward to summer time)
 }
 
-func ExtractDayAndHour(params *ParamsExtractDayAndHour) (day int, hour int) {
+func ExtractDayAndHour(timestamp int64, offsets *TimestampOffsets) (day int, hour int) {
 	// Start with base timestamp + standard offset
-	localTimestamp := params.Timestamp + params.Offset
+	localTimestamp := timestamp + offsets.OffsetUTC
 
 	// Check if the timestamp falls within the DST active window.
 	// If it does, we inject the extra 1 hour (3600 seconds) savings.
-	if params.Timestamp >= params.TimestampDSTSpring && params.Timestamp < params.TimestampDSTWinter {
+	if timestamp >= offsets.TimestampDSTSpring && timestamp < offsets.TimestampDSTWinter {
 		localTimestamp = localTimestamp + 3600
 	}
 

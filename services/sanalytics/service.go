@@ -1,17 +1,15 @@
 package sanalytics
 
 import (
-	"net"
-	"net/netip"
-	"strings"
-	"time"
-
 	"github.com/TudorHulban/analytics77/domain"
+	"github.com/TudorHulban/analytics77/helpers"
 	"github.com/TudorHulban/analytics77/shared"
 )
 
+// TODO: add methods to update the DST moments
 type ServiceAnalytics struct {
-	DC *domain.DataCenter
+	DC      *domain.DataCenter
+	offsets *helpers.TimestampOffsets
 }
 
 func NewServiceAnalytics(dataCenter *domain.DataCenter) *ServiceAnalytics {
@@ -20,71 +18,27 @@ func NewServiceAnalytics(dataCenter *domain.DataCenter) *ServiceAnalytics {
 	}
 }
 
-func (s *ServiceAnalytics) RecordEvent(ev *shared.Request) []error {
-	// Instant IP Extraction from the string header
-	host, _, errHost := net.SplitHostPort(ev.RemoteAddr)
-	if errHost != nil {
-		host = ev.RemoteAddr
+func (s *ServiceAnalytics) RecordEvents(events shared.Requests) ([]error, []error) {
+	errorsValidation := make([]error, 0, len(events))
+	validEvents := make([]*domain.ParamsAddEvent, 0, len(events))
+
+	for _, request := range events {
+		param, errTransformation := request.AsParamsAddEvent(s.offsets)
+		if errTransformation != nil {
+			errorsValidation = append(errorsValidation, errTransformation)
+
+			continue
+		}
+
+		validEvents = append(validEvents, param)
 	}
 
-	ip, errParseIP := netip.ParseAddr(host)
-	if errParseIP != nil {
-		return []error{errParseIP}
+	if len(validEvents) == 0 {
+		return errorsValidation,
+			nil
 	}
 
-	// High-speed User-Agent parsing of top 7 browsers
-	userAgent := ev.Header["User-Agent"]
+	errorsProcess := s.DC.AddEvents(validEvents...)
 
-	var uaString string
-
-	if len(userAgent) > 0 {
-		uaString = userAgent[0]
-	}
-
-	var browser domain.Browser
-
-	switch {
-	case strings.Contains(uaString, "Chrome"):
-		browser = domain.Chrome
-
-	case strings.Contains(uaString, "Safari") && !strings.Contains(uaString, "Chrome"):
-		browser = domain.Safari
-
-	case strings.Contains(uaString, "Edg"):
-		browser = domain.Edge
-
-	case strings.Contains(uaString, "Firefox"):
-		browser = domain.Firefox
-
-	case strings.Contains(uaString, "Brave"):
-		browser = domain.Brave
-
-	default:
-		browser = 0 // Unknown
-	}
-
-	// Extract Geo details (Passed downstream from your edge proxy headers)
-	var country, city string
-
-	if reqCountry := ev.Header["Cf-Ipcountry"]; len(reqCountry) > 0 {
-		country = reqCountry[0]
-	}
-	if reqCity := ev.Header["X-Client-City"]; len(reqCity) > 0 {
-		city = reqCity[0]
-	}
-
-	now := time.Now()
-	dayIdx := now.Day()
-	hourIdx := now.Hour()
-
-	return s.DC.AddEvents(
-		&domain.ParamsAddEvent{
-			DayIdx:  dayIdx,
-			HourIdx: hourIdx,
-			IP:      ip,
-			Browser: browser,
-			Country: country,
-			City:    city,
-		},
-	)
+	return errorsValidation, errorsProcess
 }

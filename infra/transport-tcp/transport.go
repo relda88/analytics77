@@ -33,14 +33,12 @@ func (s *Server) handleConnection(conn net.Conn) {
 			break
 		}
 
-		for _, request := range batch {
-			if errProcessEvent := s.service.RecordEvent(&request); errProcessEvent != nil {
-				log.Printf(
-					"error recording event from %s: %v",
-					conn.RemoteAddr(),
-					errProcessEvent,
-				)
-			}
+		 errsValidationEvents,errsProcessEvents := s.service.RecordEvents(batch); errProcessEvent != nil {
+			log.Printf(
+				"error recording event from %s: %v",
+				conn.RemoteAddr(),
+				errProcessEvent,
+			)
 		}
 	}
 }

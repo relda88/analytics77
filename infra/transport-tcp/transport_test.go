@@ -80,23 +80,19 @@ func TestTransport_TCP(t *testing.T) {
 				// Give the OS a tiny moment to bind the socket
 				time.Sleep(10 * time.Millisecond)
 
-				// Connect to the real TCP port
 				connClient, errListener := net.Dial("tcp", server.listener.Addr().String())
 				if errListener != nil {
 					t.Fatalf("failed to dial server: %v", errListener)
 				}
 
-				// 3. Send the data over the transport
-				encoder := gob.NewEncoder(connClient)
-				if err := encoder.Encode(&tc.inputRequests); err != nil {
+				if err := gob.
+					NewEncoder(connClient).
+					Encode(&tc.inputRequests); err != nil {
 					t.Fatalf("transport encoding failed: %v", err)
 				}
 
 				// Close to flush and trigger EOF on the server side
 				connClient.Close()
-
-				// Give the goroutine a moment to finish iterating and calling RecordEvent
-				time.Sleep(5 * time.Millisecond)
 
 				require.Eventually(t,
 					func() bool {
