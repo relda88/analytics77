@@ -4,7 +4,7 @@ go 1.26
 
 require (
 	github.com/stretchr/testify v1.11.1
-	github.com/tudorhulban/hxhelpers v0.0.0-20260609115825-0b637977f526
+	github.com/tudorhulban/hxhelpers v0.0.0-20260610124716-f43512018869
 )
 
 require (

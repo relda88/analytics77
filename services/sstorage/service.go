@@ -21,6 +21,12 @@ var ErrIPNotFound = errors.New("ip not found")
 
 func (s *ServiceStorage) GetIPGeo(ip netip.Addr) (*ResponseGetIPGeo, error) {
 	values := map[string]*ResponseGetIPGeo{
+		"127.0.0.1": {
+			Country: "LOC",
+			City:    "localhost",
+			ASN:     "localhost",
+		},
+
 		"82.77.237.37": {
 			Country: "ROU",
 			City:    "Iasi",

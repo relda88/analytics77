@@ -6,13 +6,25 @@ import (
 	"net/netip"
 )
 
+type DayMonth uint8 // 1 - 31
+
+func (d DayMonth) IsValid() bool {
+	return d >= 1 && d <= 31
+}
+
+type HourDay uint8 // 0 - 23
+
+func (h HourDay) IsValid() bool {
+	return h <= 23
+}
+
 type ParamsAddEvent struct {
 	SiteKey string
 	Country string
 	City    string
 
-	DayOfMonth int // 1-31
-	HourOfDay  int // 0-23
+	DayOfMonth DayMonth
+	HourOfDay  HourDay
 	IP         netip.Addr
 	Browser    Browser
 	ASN        AsnEntity
@@ -45,7 +57,7 @@ func (e *ParamsAddEvent) Validate() []error {
 		)
 	}
 
-	if e.DayOfMonth < 1 || e.DayOfMonth > 31 {
+	if !e.DayOfMonth.IsValid() {
 		errs = append(
 			errs,
 			fmt.Errorf(
@@ -55,7 +67,7 @@ func (e *ParamsAddEvent) Validate() []error {
 		)
 	}
 
-	if e.HourOfDay < 0 || e.HourOfDay > 23 {
+	if !e.HourOfDay.IsValid() {
 		errs = append(
 			errs,
 			fmt.Errorf(

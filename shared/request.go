@@ -3,6 +3,7 @@ package shared
 import (
 	"encoding/gob"
 	"errors"
+	"fmt"
 	"net"
 	"net/netip"
 	"net/url"
@@ -55,7 +56,11 @@ func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*domain.Param
 	ip, errParseIP := netip.ParseAddr(host)
 	if errParseIP != nil {
 		return nil,
-			errParseIP
+			fmt.Errorf(
+				"parsing IP: %s: %w",
+				ip,
+				errParseIP,
+			)
 	}
 
 	userAgent := req.Header["User-Agent"]
@@ -69,9 +74,6 @@ func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*domain.Param
 	var browser domain.Browser
 
 	switch {
-	case strings.Contains(uaString, "Chrome"):
-		browser = domain.Chrome
-
 	case strings.Contains(uaString, "Safari") && !strings.Contains(uaString, "Chrome"):
 		browser = domain.Safari
 
@@ -84,14 +86,29 @@ func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*domain.Param
 	case strings.Contains(uaString, "Brave"):
 		browser = domain.Brave
 
+	case strings.Contains(uaString, "Chrome"):
+		browser = domain.Chrome
+
 	default:
 		browser = 0
 	}
 
 	responseGeo, errGeo := piers.ServiceGeo.GetIPGeo(ip)
 	if errGeo != nil {
-		return nil, errGeo //TODO: review
+		return nil,
+			fmt.Errorf(
+				"geo call for IP: %s: %w",
+				ip,
+				errGeo,
+			)
 	}
+
+	offsetUTC := hxhelpers.Ternary(
+		req.OffsetUTC > 0,
+
+		req.OffsetUTC,
+		piers.Offsets.OffsetUTC,
+	)
 
 	ixDay, ixHour := helpers.ExtractDayAndHour(
 		req.TimestampUNIX,
@@ -99,12 +116,7 @@ func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*domain.Param
 			TimestampDSTWinter: piers.Offsets.TimestampDSTWinter,
 			TimestampDSTSpring: piers.Offsets.TimestampDSTSpring,
 
-			OffsetUTC: hxhelpers.Ternary(
-				req.OffsetUTC > 0,
-
-				req.OffsetUTC,
-				piers.Offsets.OffsetUTC,
-			),
+			OffsetUTC: offsetUTC,
 		},
 	)
 
@@ -113,14 +125,17 @@ func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*domain.Param
 			Country: responseGeo.Country,
 			City:    responseGeo.City,
 
-			DayOfMonth: ixDay,
-			HourOfDay:  ixHour,
+			DayOfMonth: domain.DayMonth(ixDay),
+			HourOfDay:  domain.HourDay(ixHour),
 			IP:         ip,
 			Browser:    browser,
 
 			ASN: domain.AsnEntity{
 				Name: responseGeo.ASN,
 			},
+
+			OffsetUTC:     offsetUTC,
+			TimestampUNIX: req.TimestampUNIX,
 		},
 		nil
 }

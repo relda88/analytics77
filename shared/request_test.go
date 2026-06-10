@@ -3,6 +3,15 @@ package shared
 import (
 	"encoding/gob"
 	"net/http"
+	"net/netip"
+	"testing"
+
+	"github.com/TudorHulban/analytics77/domain"
+	"github.com/TudorHulban/analytics77/helpers"
+	"github.com/TudorHulban/analytics77/services/sgeo"
+	"github.com/TudorHulban/analytics77/services/sstorage"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func ForwardAnalytics(r *http.Request, encoder *gob.Encoder) error {
@@ -16,4 +25,156 @@ func ForwardAnalytics(r *http.Request, encoder *gob.Encoder) error {
 
 	// This streams the raw binary directly across the TCP socket
 	return encoder.Encode(flat)
+}
+
+func TestRequest_AsParamsAddEvent(t *testing.T) {
+	serviceStorage := sstorage.NewServiceStorage()
+
+	serviceGeo, errCrServiceGeo := sgeo.NewServiceGeo(serviceStorage)
+	require.NoError(t, errCrServiceGeo)
+	require.NotNil(t, serviceGeo)
+
+	offsetsROU := helpers.TimestampOffsets{
+		OffsetUTC: -3,
+	}
+
+	tests := []struct {
+		name        string
+		req         Request
+		piers       *PiersAsParamsAddEvent
+		wantErr     bool
+		errContains string
+
+		validate func(t *testing.T, res *domain.ParamsAddEvent)
+	}{
+		{
+			name: "1. Error - Offsets is nil",
+			req:  Request{RemoteAddr: "127.0.0.1:8080"},
+			piers: &PiersAsParamsAddEvent{
+				Offsets:    nil,
+				ServiceGeo: serviceGeo,
+			},
+			wantErr:     true,
+			errContains: "AsParamsAddEvent - passed offsets is nil",
+		},
+		{
+			name: "2. Error - ServiceGeo is nil",
+			req:  Request{RemoteAddr: "127.0.0.1:8080"},
+			piers: &PiersAsParamsAddEvent{
+				Offsets:    &offsetsROU,
+				ServiceGeo: nil,
+			},
+			wantErr:     true,
+			errContains: "AsParamsAddEvent - passed ServiceGeo is nil",
+		},
+		{
+			name: "3. Error - Invalid IP Address",
+			req:  Request{RemoteAddr: "not-an-ip-address"},
+			piers: &PiersAsParamsAddEvent{
+				Offsets:    &offsetsROU,
+				ServiceGeo: serviceGeo,
+			},
+			wantErr: true, // Should fail at netip.ParseAddr
+		},
+		{
+			name: "4. Happy Path - Chrome User Agent and Valid Parse",
+			req: Request{
+				RemoteAddr:    "82.77.237.37:53",
+				Header:        map[string][]string{"User-Agent": {"Mozilla/5.0 Chrome/120.0.0.0"}},
+				TimestampUNIX: 1717500000,
+				OffsetUTC:     2,
+			},
+			piers: &PiersAsParamsAddEvent{
+				Offsets:    &offsetsROU,
+				ServiceGeo: serviceGeo,
+			},
+			wantErr: false,
+			validate: func(t *testing.T, res *domain.ParamsAddEvent) {
+				assert.Equal(t,
+					"82.77.237.37",
+					res.SiteKey,
+				)
+				assert.NotZero(t, res.Country)
+				assert.NotZero(t, res.City)
+
+				assert.NotZero(t, res.DayOfMonth)
+				assert.NotZero(t, res.HourOfDay)
+				assert.Equal(t,
+					netip.MustParseAddr("82.77.237.37"),
+					res.IP,
+				)
+				assert.Equal(t, domain.Chrome, res.Browser)
+				assert.NotZero(t, res.ASN.Name)
+
+				require.EqualValues(t,
+					1717500000,
+					res.TimestampUNIX,
+					"timestamp mismtch",
+				)
+				require.EqualValues(t,
+					2,
+					res.OffsetUTC,
+					"offset mismatch",
+				)
+			},
+		},
+		{
+			name: "5. Happy Path - Safari User Agent Fallback (No Chrome)",
+			req: Request{
+				RemoteAddr: "82.77.237.38",
+				Header:     map[string][]string{"User-Agent": {"Mozilla/5.0 Safari/605.1.15"}},
+			},
+			piers: &PiersAsParamsAddEvent{
+				Offsets:    &offsetsROU,
+				ServiceGeo: serviceGeo,
+			},
+			wantErr: false,
+			validate: func(t *testing.T, res *domain.ParamsAddEvent) {
+				assert.Equal(t, "82.77.237.38", res.SiteKey)
+				assert.Equal(t, domain.Safari, res.Browser)
+			},
+		},
+		{
+			name: "6. Happy Path - Unknown Browser Default",
+			req: Request{
+				RemoteAddr: "127.0.0.1",
+				Header:     map[string][]string{"User-Agent": {"Curl/7.81.0"}},
+			},
+			piers: &PiersAsParamsAddEvent{
+				Offsets:    &offsetsROU,
+				ServiceGeo: serviceGeo,
+			},
+			wantErr: false,
+			validate: func(t *testing.T, res *domain.ParamsAddEvent) {
+				assert.Equal(t, domain.Browser(0), res.Browser)
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(
+			tc.name,
+			func(t *testing.T) {
+				result, errTransformation := tc.req.AsParamsAddEvent(tc.piers)
+
+				if tc.wantErr {
+					require.Error(t, errTransformation)
+					if tc.errContains != "" {
+						assert.Contains(t, errTransformation.Error(), tc.errContains)
+					}
+
+					assert.Nil(t, result)
+
+					return
+				}
+
+				require.NoError(t, errTransformation)
+				require.NotNil(t, result)
+
+				if tc.validate != nil {
+					tc.validate(t, result)
+				}
+			},
+		)
+	}
 }
