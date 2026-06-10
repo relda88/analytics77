@@ -75,7 +75,7 @@ func TestAnalytics_E2E(t *testing.T) {
 					URL:        dummyURL,
 				},
 			},
-			expectedCount: 2,
+			expectedCount: 3, // adding test case 1 requests
 		},
 	}
 

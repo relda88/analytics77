@@ -121,7 +121,12 @@ func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*domain.Param
 	)
 
 	return &domain.ParamsAddEvent{
-			SiteKey: host,
+			SiteKey: hxhelpers.Ternary(
+				len(req.Host) == 0,
+
+				host,
+				req.Host,
+			),
 			Country: responseGeo.Country,
 			City:    responseGeo.City,
 

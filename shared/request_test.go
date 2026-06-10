@@ -80,6 +80,7 @@ func TestRequest_AsParamsAddEvent(t *testing.T) {
 			name: "4. Happy Path - Chrome User Agent and Valid Parse",
 			req: Request{
 				RemoteAddr:    "82.77.237.37:53",
+				Host:          "some-site.eu",
 				Header:        map[string][]string{"User-Agent": {"Mozilla/5.0 Chrome/120.0.0.0"}},
 				TimestampUNIX: 1717500000,
 				OffsetUTC:     2,
@@ -91,7 +92,7 @@ func TestRequest_AsParamsAddEvent(t *testing.T) {
 			wantErr: false,
 			validate: func(t *testing.T, res *domain.ParamsAddEvent) {
 				assert.Equal(t,
-					"82.77.237.37",
+					"some-site.eu",
 					res.SiteKey,
 				)
 				assert.NotZero(t, res.Country)
@@ -130,7 +131,11 @@ func TestRequest_AsParamsAddEvent(t *testing.T) {
 			},
 			wantErr: false,
 			validate: func(t *testing.T, res *domain.ParamsAddEvent) {
-				assert.Equal(t, "82.77.237.38", res.SiteKey)
+				assert.Equal(t,
+					"82.77.237.38",
+					res.SiteKey,
+					"should failback to IP",
+				)
 				assert.Equal(t, domain.Safari, res.Browser)
 			},
 		},
