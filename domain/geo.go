@@ -35,3 +35,36 @@ type IPLog struct {
 	CityID    int    `db:"city_id"`
 	ASNID     int    `db:"asn_id"`
 }
+
+type IPGeoRecord struct {
+	CountryID string
+	CityID    string
+	ASN       string
+}
+
+type CityRecord struct {
+	Name      string
+	District  string
+	CountryID string
+}
+
+type CountryRecord struct {
+	Name string
+	IsEU bool
+}
+
+type ASNRecord struct {
+	EntityID  int
+	CountryID string
+}
+
+type EntityRecord struct {
+	Name string
+}
+
+// GeoIP to be used in combination with an IP.
+type GeoIP struct {
+	Country string
+	City    string
+	ASN     string
+}
