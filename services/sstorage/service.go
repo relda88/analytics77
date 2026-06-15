@@ -1,9 +1,9 @@
 package sstorage
 
 import (
-	"net/netip"
 	"strconv"
 
+	"github.com/TudorHulban/analytics77/domain"
 	"github.com/prologic/bitcask"
 	"github.com/shamaton/msgpack/v3"
 )
@@ -23,12 +23,6 @@ func NewServiceStorage(path string) (*ServiceStorage, error) {
 			db: db,
 		},
 		nil
-}
-
-type ResponseGetIPGeo struct {
-	Country string
-	City    string
-	ASN     string
 }
 
 // func (s *ServiceStorage) GetIPGeo(ip netip.Addr) (*ResponseGetIPGeo, error) {
@@ -66,30 +60,33 @@ type ResponseGetIPGeo struct {
 // 		ErrIPNotFound
 // }
 
-func (s *ServiceStorage) GetIPGeo(ip netip.Addr) (*ResponseGetIPGeo, error) {
-	key := []byte("ip:" + ip.String())
+func (s *ServiceStorage) GetIPGeo(ip string) (*domain.GeoIP, error) {
+	key := []byte("ip:" + ip)
 
-	raw, err := s.db.Get(key)
-	if err == bitcask.ErrKeyNotFound {
-		return nil, ErrIPNotFound
+	dbValue, errGet := s.db.Get(key)
+	if errGet != nil {
+		if errGet == bitcask.ErrKeyNotFound {
+			return nil,
+				ErrIPNotFound
+		}
+
+		return nil, errGet
 	}
-	if err != nil {
-		return nil, err
-	}
 
-	var rec IPGeoRecord
+	var result domain.GeoIP
 
-	if err := msgpack.Unmarshal(raw, &rec); err != nil {
-		return nil, err
+	if errUnmarshal := msgpack.Unmarshal(dbValue, &result); errUnmarshal != nil {
+		return nil,
+			errUnmarshal
 	}
 
 	// Enrich with city + ASN entity
-	city, _ := s.getCity(rec.CityID)
-	asn, _ := s.getASN(rec.ASN)
+	city, _ := s.getCity(result.CityID)
+	asn, _ := s.getASN(result.ASN)
 	entity, _ := s.getEntity(asn.EntityID)
 
-	return &ResponseGetIPGeo{
-		Country: rec.CountryID,
+	return &domain.GeoIP{
+		Country: result.CountryID,
 		City:    city.Name,
 		ASN:     entity.Name,
 	}, nil

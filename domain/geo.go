@@ -20,21 +20,21 @@ type AsnEntity struct {
 }
 
 // AsnNumber links a specific ASN string to a parent entity and a country.
-type AsnNumber struct {
-	ID        int    `db:"id"`
-	ASN       string `db:"asn"`
-	EntityID  int    `db:"entity_id"`
-	CountryID string `db:"country_id"`
-}
+// type AsnNumber struct {
+// 	ID        int    `db:"id"`
+// 	ASN       string `db:"asn"`
+// 	EntityID  int    `db:"entity_id"`
+// 	CountryID string `db:"country_id"`
+// }
 
 // The core log record that ties it all together via IDs.
-type IPLog struct {
-	ID        int64  `db:"id"`
-	IPAddress string `db:"ip_address"`
-	Postcode  string `db:"postcode"`
-	CityID    int    `db:"city_id"`
-	ASNID     int    `db:"asn_id"`
-}
+// type IPLog struct {
+// 	ID        int64  `db:"id"`
+// 	IPAddress string `db:"ip_address"`
+// 	Postcode  string `db:"postcode"`
+// 	CityID    int    `db:"city_id"`
+// 	ASNID     int    `db:"asn_id"`
+// }
 
 type IPGeoRecord struct {
 	CountryID string

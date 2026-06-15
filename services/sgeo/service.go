@@ -18,7 +18,7 @@ import (
 // 8. Return
 
 type ServiceGeo struct {
-	cache          *lru.CacheOneLRU[string, *domain.GeoIP]
+	cache          *lru.CacheOneLRU[string, domain.GeoIP]
 	serviceStorage *sstorage.ServiceStorage
 }
 
@@ -34,10 +34,11 @@ func NewServiceGeo(service *sstorage.ServiceStorage) (*ServiceGeo, error) {
 		nil
 }
 
-func (s *ServiceGeo) GetIPGeo(ip string) (*sstorage.ResponseGetIPGeo, error) {
+func (s *ServiceGeo) GetIPGeo(ip string) (*domain.GeoIP, error) {
 	// 1. Hot cache
-	if v, exists := s.cache.Get(ip); exists {
-		return v, nil
+	if cacheValue, errGetLRU := s.cache.Get(ip); errGetLRU == nil {
+		return cacheValue,
+			nil
 	}
 
 	// 2. Persistent store (Bitcask)
