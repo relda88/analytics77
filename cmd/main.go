@@ -8,19 +8,32 @@ import (
 	"github.com/TudorHulban/analytics77/helpers"
 	transporttcp "github.com/TudorHulban/analytics77/infra/transport-tcp"
 	"github.com/TudorHulban/analytics77/services/sanalytics"
-	// Ensure you import your domain or storage implementation package here
+	"github.com/TudorHulban/analytics77/services/sgeo"
+	"github.com/TudorHulban/analytics77/services/sstorage"
 )
 
 func main() {
 	log.Println("Initializing Analytics Application...")
 
+	serviceGeo, errSvcGeo := sgeo.NewServiceGeo(sstorage.NewServiceStorage())
+	if errSvcGeo != nil {
+		log.Printf(
+			"service geo creation: %s",
+			errSvcGeo.Error(),
+		)
+	}
+
 	offsets := helpers.TimestampOffsets{
 		OffsetUTC: -3,
 	}
 
-	dc := domain.NewDataCenter()
-
-	serviceAnalytics := sanalytics.NewServiceAnalytics(dc, &offsets)
+	serviceAnalytics := sanalytics.NewServiceAnalytics(
+		&sanalytics.PiersNewServiceAnalytics{
+			DC:         domain.NewDataCenter(),
+			ServiceGeo: serviceGeo,
+		},
+		&offsets,
+	)
 
 	listener, errListener := net.Listen("tcp", "127.0.0.1:8000")
 	if errListener != nil {

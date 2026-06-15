@@ -128,7 +128,7 @@ func (dc *DataCenter) AddEvents(events ...*ParamsAddEvent) []error {
 
 		metricSlot.RecordsPerPeriod.Add(1)
 
-		metricSlot.TopIPs.Increment(event.IP)
+		metricSlot.TopIPs.Increment(event.IP.String())
 		metricSlot.TopBrowsers.Increment(event.Browser)
 		metricSlot.TopASN.Increment(event.ASN)
 

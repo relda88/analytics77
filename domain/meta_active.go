@@ -1,18 +1,15 @@
 package domain
 
 import (
-	"errors"
 	"sync/atomic"
 )
 
-var ErrKeyNotFound = errors.New("key not found")
-
-type Meta[T comparable] struct {
+type MetaActive[T comparable] struct {
 	Names  [7]T
 	Values [7]atomic.Uint32
 }
 
-func (m *Meta[T]) GetValue(byKey T) (uint32, error) {
+func (m *MetaActive[T]) GetValue(byKey T) (uint32, error) {
 	for ix, n := range m.Names {
 		if n == byKey {
 			return m.Values[ix].Load(), nil
@@ -23,7 +20,7 @@ func (m *Meta[T]) GetValue(byKey T) (uint32, error) {
 		ErrKeyNotFound
 }
 
-func (m *Meta[T]) Increment(key T) {
+func (m *MetaActive[T]) Increment(key T) {
 	// Scan for exact match
 	for i, name := range m.Names {
 		if name == key {

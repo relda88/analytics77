@@ -2,30 +2,44 @@ package domain
 
 import (
 	"fmt"
-	"net/netip"
 	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
 )
 
-type Metric struct {
+type MetricActive struct {
 	RecordsPerPeriod atomic.Uint32
-	TopIPs           Meta[netip.Addr]
-	TopBrowsers      Meta[Browser]
-	TopASN           Meta[AsnEntity]
-	TopCountries     Meta[string]
-	TopCities        Meta[string]
-	TopURL           Meta[string]
+
+	TopIPs       MetaActive[string]
+	TopBrowsers  MetaActive[Browser]
+	TopASN       MetaActive[AsnEntity]
+	TopCountries MetaActive[string]
+	TopCities    MetaActive[string]
+	TopURL       MetaActive[string]
 }
 
-type Day [24]Metric
+type MetricArchived struct {
+	RecordsPerPeriod uint32
+
+	TopIPs       MetaArchived[string]
+	TopBrowsers  MetaArchived[Browser]
+	TopASN       MetaArchived[AsnEntity]
+	TopCountries MetaArchived[string]
+	TopCities    MetaArchived[string]
+	TopURL       MetaArchived[string]
+}
+
+type (
+	DayActive   [24]MetricActive
+	DayArchived [24]MetricArchived
+)
 
 type Registry struct {
-	MonthPrevious [31]Day
-	MonthCurrent  [31]Day
+	MonthPrevious [31]DayActive
+	MonthCurrent  [31]DayActive
 
-	History [7][31]Day
+	History [7][31]DayArchived
 }
 
 type DataCenter struct {
@@ -66,24 +80,65 @@ func (dc *DataCenter) String() string {
 	return b.String()
 }
 
-func registryString(r *Registry, b *strings.Builder) {
-	monthString("current", r.MonthCurrent[:], b)
-	monthString("previous", r.MonthPrevious[:], b)
+func monthActiveString(label string, month []DayActive, b *strings.Builder) {
+	for ixDay := range month {
+		day := &month[ixDay] // pointer, no copy
 
-	for i, month := range r.History {
-		monthString(fmt.Sprintf("history[%d]", i), month[:], b)
+		for ixHour := range day {
+			m := &day[ixHour] // pointer, no copy
+
+			noRecords := m.RecordsPerPeriod.Load()
+			if noRecords == 0 {
+				continue
+			}
+
+			fmt.Fprintf(
+				b,
+				"  %-10s day%02d hour%02d  records:%d\n",
+
+				label,
+				ixDay,
+				ixHour,
+				noRecords,
+			)
+		}
 	}
 }
 
-func monthString(label string, month []Day, b *strings.Builder) {
-	for dayIdx, day := range month {
-		for hourIdx, m := range day {
-			n := m.RecordsPerPeriod.Load()
-			if n == 0 {
+func monthArchivedString(label string, month []DayArchived, b *strings.Builder) {
+	for ixDay := range month {
+		day := &month[ixDay] // pointer, no copy
+
+		for ixHour := range day {
+			m := &day[ixHour] // pointer, no copy
+
+			noRecords := m.RecordsPerPeriod
+			if noRecords == 0 {
 				continue
 			}
-			fmt.Fprintf(b, "  %-10s day%02d hour%02d  records:%d\n",
-				label, dayIdx, hourIdx, n)
+
+			fmt.Fprintf(
+				b,
+				"  %-10s day%02d hour%02d  records:%d\n",
+
+				label,
+				ixDay,
+				ixHour,
+				noRecords,
+			)
 		}
+	}
+}
+
+func registryString(r *Registry, b *strings.Builder) {
+	monthActiveString("current", r.MonthCurrent[:], b)
+	monthActiveString("previous", r.MonthPrevious[:], b)
+
+	for ix, month := range r.History {
+		monthArchivedString(
+			fmt.Sprintf("history[%d]", ix),
+			month[:],
+			b,
+		)
 	}
 }
