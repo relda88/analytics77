@@ -10,14 +10,14 @@ import (
 )
 
 type TransportTCP struct {
-	listener net.Listener
-	service  *sanalytics.ServiceAnalytics
+	listener         net.Listener
+	serviceAnalytics *sanalytics.ServiceAnalytics
 }
 
 func NewTransportTCP(l net.Listener, service *sanalytics.ServiceAnalytics) *TransportTCP {
 	return &TransportTCP{
-		listener: l,
-		service:  service,
+		listener:         l,
+		serviceAnalytics: service,
 	}
 }
 
@@ -37,7 +37,7 @@ func (s *TransportTCP) handleConnection(conn net.Conn) {
 			break
 		}
 
-		errsValidationEvents, errsProcessEvents := s.service.RecordEvents(batch)
+		errsValidationEvents, errsProcessEvents := s.serviceAnalytics.RecordEvents(batch)
 		if errsValidationEvents != nil {
 			log.Printf(
 				"validation error(s) from %s: %v",

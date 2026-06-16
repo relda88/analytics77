@@ -54,7 +54,7 @@ func TestRequest_AsParamsAddEvent(t *testing.T) {
 		wantErr     bool
 		errContains string
 
-		validate func(t *testing.T, res *domain.ParamsAddEvent)
+		validate func(t *testing.T, res *ParamsAddEvent)
 	}{
 		{
 			name: "1. Error - Offsets is nil",
@@ -99,7 +99,7 @@ func TestRequest_AsParamsAddEvent(t *testing.T) {
 				ServiceGeo: serviceGeo,
 			},
 			wantErr: false,
-			validate: func(t *testing.T, res *domain.ParamsAddEvent) {
+			validate: func(t *testing.T, res *ParamsAddEvent) {
 				assert.Equal(t,
 					"some-site.eu",
 					res.SiteKey,
@@ -139,7 +139,7 @@ func TestRequest_AsParamsAddEvent(t *testing.T) {
 				ServiceGeo: serviceGeo,
 			},
 			wantErr: false,
-			validate: func(t *testing.T, res *domain.ParamsAddEvent) {
+			validate: func(t *testing.T, res *ParamsAddEvent) {
 				assert.Equal(t,
 					"82.77.237.38",
 					res.SiteKey,
@@ -159,7 +159,7 @@ func TestRequest_AsParamsAddEvent(t *testing.T) {
 				ServiceGeo: serviceGeo,
 			},
 			wantErr: false,
-			validate: func(t *testing.T, res *domain.ParamsAddEvent) {
+			validate: func(t *testing.T, res *ParamsAddEvent) {
 				assert.Equal(t, domain.Browser(0), res.Browser)
 			},
 		},

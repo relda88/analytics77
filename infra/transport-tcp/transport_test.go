@@ -8,9 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TudorHulban/analytics77/domain"
 	"github.com/TudorHulban/analytics77/helpers"
 	"github.com/TudorHulban/analytics77/services/sanalytics"
+	"github.com/TudorHulban/analytics77/services/sgeo"
+	"github.com/TudorHulban/analytics77/services/sstorage"
 	"github.com/TudorHulban/analytics77/shared"
 	"github.com/stretchr/testify/require"
 )
@@ -21,6 +22,8 @@ func TestTransport_TCP(t *testing.T) {
 	offsets := helpers.TimestampOffsets{
 		OffsetUTC: -3,
 	}
+
+	apiKey := ""
 
 	tests := []struct {
 		description   string
@@ -67,9 +70,22 @@ func TestTransport_TCP(t *testing.T) {
 				listener, errListener := net.Listen("tcp", "127.0.0.1:0")
 				require.NoError(t, errListener)
 
+				serviceStorage, errCrServiceStorage := sstorage.NewServiceStorage(".")
+				require.NoError(t, errCrServiceStorage)
+				require.NotNil(t, serviceStorage)
+
+				serviceGeo, errCrServiceGeo := sgeo.NewServiceGeo(
+					&sgeo.ParamsNewServiceGeo{
+						APIKeyGeolocation: apiKey,
+					},
+					serviceStorage,
+				)
+				require.NoError(t, errCrServiceGeo)
+				require.NotNil(t, serviceGeo)
+
 				serviceAnalytics := sanalytics.NewServiceAnalytics(
 					&sanalytics.PiersNewServiceAnalytics{
-						DC: domain.NewDataCenter(),
+						ServiceGeo: serviceGeo,
 					},
 					&offsets,
 				)

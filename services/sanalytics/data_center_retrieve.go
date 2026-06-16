@@ -1,4 +1,4 @@
-package domain
+package sanalytics
 
 import (
 	"fmt"
@@ -27,10 +27,16 @@ func (r ResponseRecordsPerSite) String() string {
 	var builder strings.Builder
 	builder.WriteString("{")
 
-	for i, key := range keys {
-		builder.WriteString(fmt.Sprintf("%s: %d", key, r[key]))
+	for ix, key := range keys {
+		builder.WriteString(
+			fmt.Sprintf(
+				"%s: %d",
+				key,
+				r[key],
+			),
+		)
 
-		if i < len(keys)-1 {
+		if ix < len(keys)-1 {
 			builder.WriteString(", ")
 		}
 	}

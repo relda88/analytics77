@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TudorHulban/analytics77/domain"
 	"github.com/TudorHulban/analytics77/helpers"
 	transporttcp "github.com/TudorHulban/analytics77/infra/transport-tcp"
 	"github.com/TudorHulban/analytics77/services/sanalytics"
@@ -19,9 +18,6 @@ import (
 )
 
 func TestAnalytics_E2E(t *testing.T) {
-	dc := domain.NewDataCenter()
-	require.NotNil(t, dc)
-
 	offsetsROU := helpers.TimestampOffsets{
 		OffsetUTC: -3,
 	}
@@ -43,7 +39,6 @@ func TestAnalytics_E2E(t *testing.T) {
 
 	serviceAnalytics := sanalytics.NewServiceAnalytics(
 		&sanalytics.PiersNewServiceAnalytics{
-			DC:         dc,
 			ServiceGeo: serviceGeo,
 		},
 		&offsetsROU,

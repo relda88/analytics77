@@ -3,7 +3,6 @@ package sanalytics
 import (
 	"fmt"
 
-	"github.com/TudorHulban/analytics77/domain"
 	"github.com/TudorHulban/analytics77/helpers"
 	"github.com/TudorHulban/analytics77/services/sgeo"
 	"github.com/TudorHulban/analytics77/shared"
@@ -11,20 +10,19 @@ import (
 
 // TODO: add methods to update the DST moments
 type ServiceAnalytics struct {
-	DC      *domain.DataCenter
+	DC      *DataCenter
 	offsets *helpers.TimestampOffsets
 
 	serviceGeo *sgeo.ServiceGeo
 }
 
 type PiersNewServiceAnalytics struct {
-	DC         *domain.DataCenter
 	ServiceGeo *sgeo.ServiceGeo
 }
 
 func NewServiceAnalytics(piers *PiersNewServiceAnalytics, offsets *helpers.TimestampOffsets) *ServiceAnalytics {
 	return &ServiceAnalytics{
-		DC:         piers.DC,
+		DC:         NewDataCenter(),
 		serviceGeo: piers.ServiceGeo,
 
 		offsets: offsets,
@@ -34,7 +32,7 @@ func NewServiceAnalytics(piers *PiersNewServiceAnalytics, offsets *helpers.Times
 // RecordEvents returns transformation and validation / processing errors.
 func (s *ServiceAnalytics) RecordEvents(events shared.Requests) ([]error, []error) {
 	errorsTransformation := make([]error, 0, len(events))
-	validEvents := make([]*domain.ParamsAddEvent, 0, len(events))
+	validEvents := make([]*shared.ParamsAddEvent, 0, len(events))
 
 	for ix, event := range events {
 		param, errTransformation := event.AsParamsAddEvent(
@@ -64,7 +62,7 @@ func (s *ServiceAnalytics) RecordEvents(events shared.Requests) ([]error, []erro
 			nil
 	}
 
-	errorsProcess := s.DC.AddEvents(validEvents...)
+	errorsProcess := s.DC.addEvents(validEvents...)
 
 	return errorsTransformation, errorsProcess
 }

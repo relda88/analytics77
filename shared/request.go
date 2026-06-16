@@ -36,7 +36,7 @@ type PiersAsParamsAddEvent struct {
 	ServiceGeo *sgeo.ServiceGeo
 }
 
-func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*domain.ParamsAddEvent, error) {
+func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*ParamsAddEvent, error) {
 	if piers.Offsets == nil {
 		return nil, errors.New(
 			"AsParamsAddEvent - passed offsets is nil",
@@ -120,7 +120,7 @@ func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*domain.Param
 		},
 	)
 
-	return &domain.ParamsAddEvent{
+	return &ParamsAddEvent{
 			SiteKey: hxhelpers.Ternary(
 				len(req.Host) == 0,
 
@@ -130,8 +130,8 @@ func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*domain.Param
 			Country: responseGeo.Location.CountryCode,
 			City:    responseGeo.Location.City,
 
-			DayOfMonth: domain.DayMonth(ixDay),
-			HourOfDay:  domain.HourDay(ixHour),
+			DayOfMonth: DayMonth(ixDay),
+			HourOfDay:  HourDay(ixHour),
 			IP:         ip,
 			Browser:    browser,
 

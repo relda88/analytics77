@@ -1,9 +1,11 @@
-package domain
+package shared
 
 import (
 	"errors"
 	"fmt"
 	"net/netip"
+
+	"github.com/TudorHulban/analytics77/domain"
 )
 
 type DayMonth uint8 // 1 - 31
@@ -26,7 +28,7 @@ type ParamsAddEvent struct {
 	DayOfMonth      DayMonth
 	HourOfDay       HourDay
 	IP              netip.Addr
-	Browser         Browser
+	Browser         domain.Browser
 	ASNOrganization string
 
 	TimestampUNIX int64
@@ -89,58 +91,4 @@ func (e *ParamsAddEvent) Validate() []error {
 	}
 
 	return errs
-}
-
-func (dc *DataCenter) AddEvents(events ...*ParamsAddEvent) []error {
-	errorsBatch := make([]error, 0)
-	indexesNoError := make([]int, 0, len(events))
-
-	var hasErrors bool
-
-	for ix, event := range events {
-		if errorsValidation := event.Validate(); errorsValidation != nil {
-			hasErrors = true
-
-			errorsBatch = append(
-				errorsBatch,
-				errorsValidation...)
-
-			continue
-		}
-
-		indexesNoError = append(indexesNoError, ix)
-	}
-
-	dc.mu.Lock()
-
-	for _, eventIndex := range indexesNoError {
-		event := events[eventIndex]
-
-		registrySite, exists := dc.data[event.SiteKey]
-		if !exists {
-			registrySite = &Registry{}
-
-			dc.data[event.SiteKey] = registrySite
-		}
-
-		metricSlot := &registrySite.
-			MonthCurrent[event.DayOfMonth-1][event.HourOfDay]
-
-		metricSlot.RecordsPerPeriod.Add(1)
-
-		metricSlot.TopIPs.Increment(event.IP.String())
-		metricSlot.TopBrowsers.Increment(event.Browser)
-		metricSlot.TopASN.Increment(event.ASNOrganization)
-
-		metricSlot.TopCountries.Increment(event.Country)
-		metricSlot.TopCities.Increment(event.City)
-	}
-
-	dc.mu.Unlock()
-
-	if hasErrors {
-		return errorsBatch
-	}
-
-	return nil
 }
