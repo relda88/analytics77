@@ -28,9 +28,18 @@ func ForwardAnalytics(r *http.Request, encoder *gob.Encoder) error {
 }
 
 func TestRequest_AsParamsAddEvent(t *testing.T) {
-	serviceStorage := sstorage.NewServiceStorage()
+	serviceStorage, errCrServiceStorage := sstorage.NewServiceStorage(".")
+	require.NoError(t, errCrServiceStorage)
+	require.NotNil(t, serviceStorage)
 
-	serviceGeo, errCrServiceGeo := sgeo.NewServiceGeo(serviceStorage)
+	apiKey := ""
+
+	serviceGeo, errCrServiceGeo := sgeo.NewServiceGeo(
+		&sgeo.ParamsNewServiceGeo{
+			APIKeyGeolocation: apiKey,
+		},
+		serviceStorage,
+	)
 	require.NoError(t, errCrServiceGeo)
 	require.NotNil(t, serviceGeo)
 
@@ -105,7 +114,7 @@ func TestRequest_AsParamsAddEvent(t *testing.T) {
 					res.IP,
 				)
 				assert.Equal(t, domain.Chrome, res.Browser)
-				assert.NotZero(t, res.ASN.Name)
+				assert.NotZero(t, res.ASNOrganization)
 
 				require.EqualValues(t,
 					1717500000,

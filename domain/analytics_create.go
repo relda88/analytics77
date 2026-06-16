@@ -23,11 +23,11 @@ type ParamsAddEvent struct {
 	Country string
 	City    string
 
-	DayOfMonth DayMonth
-	HourOfDay  HourDay
-	IP         netip.Addr
-	Browser    Browser
-	ASN        AsnEntity
+	DayOfMonth      DayMonth
+	HourOfDay       HourDay
+	IP              netip.Addr
+	Browser         Browser
+	ASNOrganization string
 
 	TimestampUNIX int64
 	OffsetUTC     int64
@@ -130,7 +130,7 @@ func (dc *DataCenter) AddEvents(events ...*ParamsAddEvent) []error {
 
 		metricSlot.TopIPs.Increment(event.IP.String())
 		metricSlot.TopBrowsers.Increment(event.Browser)
-		metricSlot.TopASN.Increment(event.ASN)
+		metricSlot.TopASN.Increment(event.ASNOrganization)
 
 		metricSlot.TopCountries.Increment(event.Country)
 		metricSlot.TopCities.Increment(event.City)

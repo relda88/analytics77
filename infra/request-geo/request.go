@@ -5,25 +5,18 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+
+	"github.com/TudorHulban/analytics77/domain"
 )
 
-type ResponseGeoIP struct {
-	Location struct {
-		City        string `json:"city"`
-		District    string `json:"district"`
-		CountryCode string `json:"country_code3"`
-		Postcode    string `json:"zipcode"`
-		IsEU        bool   `json:"is_eu"`
-	} `json:"location"`
+type ParamsGetLocationByIP struct {
+	Client *http.Client
 
-	ASN struct {
-		AsNumber     string `json:"as_number"`
-		Organization string `json:"organization"`
-		Country      string `json:"country"`
-	} `json:"asn"`
+	APIKey    string
+	IPAddress string
 }
 
-func GetLocationByIP(client *http.Client, ipAddress, apiKey string) (*ResponseGeoIP, error) {
+func GetLocationByIP(params *ParamsGetLocationByIP) (*domain.GeoIP, error) {
 	// 1. Construct the URL safely
 	baseURL, errParse := url.Parse("https://api.ipgeolocation.io/v3/ipgeo")
 	if errParse != nil {
@@ -31,13 +24,13 @@ func GetLocationByIP(client *http.Client, ipAddress, apiKey string) (*ResponseGe
 			fmt.Errorf("failed parsing base URL: %w", errParse)
 	}
 
-	params := url.Values{}
-	params.Add("ip", ipAddress)
-	params.Add("apiKey", apiKey)
-	baseURL.RawQuery = params.Encode()
+	urlValues := url.Values{}
+	urlValues.Add("ip", params.IPAddress)
+	urlValues.Add("apiKey", params.APIKey)
+	baseURL.RawQuery = urlValues.Encode()
 
 	// 2. Execute the HTTP GET request
-	resp, errGet := client.Get(baseURL.String())
+	resp, errGet := params.Client.Get(baseURL.String())
 	if errGet != nil {
 		return nil,
 			fmt.Errorf("http request failed: %w", errGet)
@@ -51,7 +44,7 @@ func GetLocationByIP(client *http.Client, ipAddress, apiKey string) (*ResponseGe
 	}
 
 	// 4. Decode the JSON stream directly into the struct (more efficient than io.ReadAll)
-	var geoData ResponseGeoIP
+	var geoData domain.GeoIP
 
 	if errDecoder := json.NewDecoder(resp.Body).Decode(&geoData); errDecoder != nil {
 		return nil,

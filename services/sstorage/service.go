@@ -1,8 +1,6 @@
 package sstorage
 
 import (
-	"strconv"
-
 	"github.com/TudorHulban/analytics77/domain"
 	"github.com/prologic/bitcask"
 	"github.com/shamaton/msgpack/v3"
@@ -60,6 +58,10 @@ func NewServiceStorage(path string) (*ServiceStorage, error) {
 // 		ErrIPNotFound
 // }
 
+func (s *ServiceStorage) PutGeoIP(value *domain.GeoIP) error {
+	return nil
+}
+
 func (s *ServiceStorage) GetIPGeo(ip string) (*domain.GeoIP, error) {
 	key := []byte("ip:" + ip)
 
@@ -80,41 +82,5 @@ func (s *ServiceStorage) GetIPGeo(ip string) (*domain.GeoIP, error) {
 			errUnmarshal
 	}
 
-	// Enrich with city + ASN entity
-	city, _ := s.getCity(result.CityID)
-	asn, _ := s.getASN(result.ASN)
-	entity, _ := s.getEntity(asn.EntityID)
-
-	return &domain.GeoIP{
-		Country: result.CountryID,
-		City:    city.Name,
-		ASN:     entity.Name,
-	}, nil
-}
-
-func (s *ServiceStorage) getCity(id string) (*CityRecord, error) {
-	raw, err := s.db.Get([]byte("city:" + id))
-	if err != nil {
-		return nil, err
-	}
-	var rec CityRecord
-	return &rec, msgpack.Unmarshal(raw, &rec)
-}
-
-func (s *ServiceStorage) getASN(asn string) (*ASNRecord, error) {
-	raw, err := s.db.Get([]byte("asn:" + asn))
-	if err != nil {
-		return nil, err
-	}
-	var rec ASNRecord
-	return &rec, msgpack.Unmarshal(raw, &rec)
-}
-
-func (s *ServiceStorage) getEntity(id int) (*EntityRecord, error) {
-	raw, err := s.db.Get([]byte("entity:" + strconv.Itoa(id)))
-	if err != nil {
-		return nil, err
-	}
-	var rec EntityRecord
-	return &rec, msgpack.Unmarshal(raw, &rec)
+	return &result, nil
 }

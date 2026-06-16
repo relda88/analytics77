@@ -16,9 +16,11 @@ func TestGetLocationByIP(t *testing.T) {
 	targetIP := "82.76.117.202"
 
 	location, errGeo := GetLocationByIP(
-		&httpClient,
-		targetIP,
-		apiKey,
+		&ParamsGetLocationByIP{
+			Client:    &httpClient,
+			APIKey:    apiKey,
+			IPAddress: targetIP,
+		},
 	)
 	if errGeo != nil {
 		fmt.Printf("Error: %v\n", errGeo)

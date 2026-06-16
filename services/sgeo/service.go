@@ -2,8 +2,11 @@ package sgeo
 
 import (
 	"errors"
+	"net/http"
+	"time"
 
 	"github.com/TudorHulban/analytics77/domain"
+	requestgeo "github.com/TudorHulban/analytics77/infra/request-geo"
 	"github.com/TudorHulban/analytics77/services/sstorage"
 	lru "github.com/TudorHulban/hx-lru"
 )
@@ -18,18 +21,36 @@ import (
 // 8. Return
 
 type ServiceGeo struct {
+	apiKeyGeolocation string
+
 	cache          *lru.CacheOneLRU[string, domain.GeoIP]
 	serviceStorage *sstorage.ServiceStorage
+	httpClient     *http.Client
 }
 
-func NewServiceGeo(service *sstorage.ServiceStorage) (*ServiceGeo, error) {
+type ParamsNewServiceGeo struct {
+	APIKeyGeolocation string
+}
+
+func NewServiceGeo(params *ParamsNewServiceGeo, service *sstorage.ServiceStorage) (*ServiceGeo, error) {
 	if service == nil {
 		return nil,
 			errors.New("passed service storage is nil")
 	}
 
 	return &ServiceGeo{
+			apiKeyGeolocation: params.APIKeyGeolocation,
+
+			cache: lru.NewCacheOneLRU[string, domain.GeoIP](
+				&lru.ParamsNewCacheLRU{
+					TTL:      14 * 24 * time.Hour,
+					Capacity: 5000,
+				},
+			),
 			serviceStorage: service,
+			httpClient: &http.Client{
+				Timeout: 5 * time.Second,
+			},
 		},
 		nil
 }
@@ -42,20 +63,30 @@ func (s *ServiceGeo) GetIPGeo(ip string) (*domain.GeoIP, error) {
 	}
 
 	// 2. Persistent store (Bitcask)
-	if v, err := s.serviceStorage.GetIPGeo(ip); err == nil {
-		s.cache.Put(ip, v)
-		return v, nil
+	if kvValue, errGetPersistence := s.serviceStorage.GetIPGeo(ip); errGetPersistence == nil {
+		s.cache.Put(ip, *kvValue)
+
+		return kvValue,
+			nil
 	}
 
 	// 3. Provider (cold path)
-	v, err := s.provider.Lookup(ip)
-	if err != nil {
-		return nil, err
+	providerValue, errGetProvider := requestgeo.GetLocationByIP(
+		&requestgeo.ParamsGetLocationByIP{
+			Client:    s.httpClient,
+			APIKey:    s.apiKeyGeolocation,
+			IPAddress: ip,
+		},
+	)
+	if errGetProvider != nil {
+		return nil,
+			errGetProvider
 	}
 
 	// 4. Persist + cache
-	_ = s.serviceStorage.PutIPGeo(ip, v)
-	s.cache.Put(ip, v)
+	_ = s.serviceStorage.PutGeoIP(providerValue)
+	s.cache.Put(ip, *providerValue)
 
-	return v, nil
+	return providerValue,
+		nil
 }

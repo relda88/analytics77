@@ -7,6 +7,7 @@ import (
 )
 
 func TestServiceStorage(t *testing.T) {
-	service := NewServiceStorage()
-	require.NotNil(t, service)
+	serviceStorage, errCrServiceStorage := NewServiceStorage(".")
+	require.NoError(t, errCrServiceStorage)
+	require.NotNil(t, serviceStorage)
 }

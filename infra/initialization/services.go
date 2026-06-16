@@ -12,7 +12,8 @@ import (
 )
 
 type ParamsServices struct {
-	Offsets helpers.TimestampOffsets
+	Offsets           helpers.TimestampOffsets
+	APIKeyGeolocation string
 }
 
 func Services(params *ParamsServices) *sanalytics.ServiceAnalytics {
@@ -28,7 +29,12 @@ func Services(params *ParamsServices) *sanalytics.ServiceAnalytics {
 		os.Exit(10)
 	}
 
-	serviceGeo, errCrServiceGeo := sgeo.NewServiceGeo(serviceStorage)
+	serviceGeo, errCrServiceGeo := sgeo.NewServiceGeo(
+		&sgeo.ParamsNewServiceGeo{
+			APIKeyGeolocation: params.APIKeyGeolocation,
+		},
+		serviceStorage,
+	)
 	if errCrServiceGeo != nil {
 		log.Printf(
 			"service geo creation: %s",

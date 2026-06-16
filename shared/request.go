@@ -93,7 +93,7 @@ func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*domain.Param
 		browser = 0
 	}
 
-	responseGeo, errGeo := piers.ServiceGeo.GetIPGeo(ip)
+	responseGeo, errGeo := piers.ServiceGeo.GetIPGeo(ip.String())
 	if errGeo != nil {
 		return nil,
 			fmt.Errorf(
@@ -127,17 +127,15 @@ func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*domain.Param
 				host,
 				req.Host,
 			),
-			Country: responseGeo.Country,
-			City:    responseGeo.City,
+			Country: responseGeo.Location.CountryCode,
+			City:    responseGeo.Location.City,
 
 			DayOfMonth: domain.DayMonth(ixDay),
 			HourOfDay:  domain.HourDay(ixHour),
 			IP:         ip,
 			Browser:    browser,
 
-			ASN: domain.AsnEntity{
-				Name: responseGeo.ASN,
-			},
+			ASNOrganization: responseGeo.ASN.Organization,
 
 			OffsetUTC:     offsetUTC,
 			TimestampUNIX: req.TimestampUNIX,

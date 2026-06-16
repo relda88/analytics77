@@ -26,8 +26,19 @@ func TestAnalytics_E2E(t *testing.T) {
 		OffsetUTC: -3,
 	}
 
-	serviceGeo, errSvcGeo := sgeo.NewServiceGeo(sstorage.NewServiceStorage())
-	require.NoError(t, errSvcGeo)
+	apiKey := ""
+
+	serviceStorage, errCrServiceStorage := sstorage.NewServiceStorage(".")
+	require.NoError(t, errCrServiceStorage)
+	require.NotNil(t, serviceStorage)
+
+	serviceGeo, errCrServiceGeo := sgeo.NewServiceGeo(
+		&sgeo.ParamsNewServiceGeo{
+			APIKeyGeolocation: apiKey,
+		},
+		serviceStorage,
+	)
+	require.NoError(t, errCrServiceGeo)
 	require.NotNil(t, serviceGeo)
 
 	serviceAnalytics := sanalytics.NewServiceAnalytics(
