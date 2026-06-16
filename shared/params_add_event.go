@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/netip"
 
-	"github.com/TudorHulban/analytics77/domain"
+	"github.com/TudorHulban/analytics77/domain/analytics"
 )
 
 type DayMonth uint8 // 1 - 31
@@ -28,7 +28,7 @@ type ParamsAddEvent struct {
 	DayOfMonth      DayMonth
 	HourOfDay       HourDay
 	IP              netip.Addr
-	Browser         domain.Browser
+	Browser         analytics.Browser
 	ASNOrganization string
 
 	TimestampUNIX int64

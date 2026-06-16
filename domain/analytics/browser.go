@@ -1,6 +1,6 @@
-package domain
+package analytics
 
-type Browser uint8
+type Browser uint8 // TODO: move to shared?
 
 const (
 	Chrome Browser = iota + 1

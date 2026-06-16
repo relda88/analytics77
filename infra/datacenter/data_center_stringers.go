@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/TudorHulban/analytics77/domain"
+	"github.com/TudorHulban/analytics77/domain/analytics"
 )
 
-func monthActiveString(label string, month []domain.DayActive, b *strings.Builder) {
+func monthActiveString(label string, month []analytics.DayActive, b *strings.Builder) {
 	for ixDay := range month {
 		day := &month[ixDay] // pointer, no copy
 
@@ -32,7 +32,7 @@ func monthActiveString(label string, month []domain.DayActive, b *strings.Builde
 	}
 }
 
-func monthArchivedString(label string, month []domain.DayArchived, b *strings.Builder) {
+func monthArchivedString(label string, month []analytics.DayArchived, b *strings.Builder) {
 	for ixDay := range month {
 		day := &month[ixDay] // pointer, no copy
 
@@ -57,7 +57,7 @@ func monthArchivedString(label string, month []domain.DayArchived, b *strings.Bu
 	}
 }
 
-func registryString(r *domain.Registry, b *strings.Builder) {
+func registryString(r *analytics.Registry, b *strings.Builder) {
 	monthActiveString("current", r.MonthCurrent[:], b)
 	monthActiveString("previous", r.MonthPrevious[:], b)
 

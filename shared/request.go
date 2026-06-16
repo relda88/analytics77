@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/TudorHulban/analytics77/domain"
+	"github.com/TudorHulban/analytics77/domain/analytics"
 	"github.com/TudorHulban/analytics77/helpers"
 	"github.com/TudorHulban/analytics77/services/sgeo"
 
@@ -71,23 +71,23 @@ func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*ParamsAddEve
 		uaString = userAgent[0]
 	}
 
-	var browser domain.Browser
+	var browser analytics.Browser
 
 	switch {
 	case strings.Contains(uaString, "Safari") && !strings.Contains(uaString, "Chrome"):
-		browser = domain.Safari
+		browser = analytics.Safari
 
 	case strings.Contains(uaString, "Edg"):
-		browser = domain.Edge
+		browser = analytics.Edge
 
 	case strings.Contains(uaString, "Firefox"):
-		browser = domain.Firefox
+		browser = analytics.Firefox
 
 	case strings.Contains(uaString, "Brave"):
-		browser = domain.Brave
+		browser = analytics.Brave
 
 	case strings.Contains(uaString, "Chrome"):
-		browser = domain.Chrome
+		browser = analytics.Chrome
 
 	default:
 		browser = 0

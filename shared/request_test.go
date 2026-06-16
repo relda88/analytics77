@@ -6,7 +6,7 @@ import (
 	"net/netip"
 	"testing"
 
-	"github.com/TudorHulban/analytics77/domain"
+	"github.com/TudorHulban/analytics77/domain/analytics"
 	"github.com/TudorHulban/analytics77/helpers"
 	"github.com/TudorHulban/analytics77/services/sgeo"
 	"github.com/TudorHulban/analytics77/services/sstorage"
@@ -113,7 +113,7 @@ func TestRequest_AsParamsAddEvent(t *testing.T) {
 					netip.MustParseAddr("82.77.237.37"),
 					res.IP,
 				)
-				assert.Equal(t, domain.Chrome, res.Browser)
+				assert.Equal(t, analytics.Chrome, res.Browser)
 				assert.NotZero(t, res.ASNOrganization)
 
 				require.EqualValues(t,
@@ -145,7 +145,7 @@ func TestRequest_AsParamsAddEvent(t *testing.T) {
 					res.SiteKey,
 					"should failback to IP",
 				)
-				assert.Equal(t, domain.Safari, res.Browser)
+				assert.Equal(t, analytics.Safari, res.Browser)
 			},
 		},
 		{
@@ -160,7 +160,7 @@ func TestRequest_AsParamsAddEvent(t *testing.T) {
 			},
 			wantErr: false,
 			validate: func(t *testing.T, res *ParamsAddEvent) {
-				assert.Equal(t, domain.Browser(0), res.Browser)
+				assert.Equal(t, analytics.Browser(0), res.Browser)
 			},
 		},
 	}

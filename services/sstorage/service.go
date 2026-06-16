@@ -1,7 +1,7 @@
 package sstorage
 
 import (
-	"github.com/TudorHulban/analytics77/domain"
+	"github.com/TudorHulban/analytics77/domain/analytics"
 	"github.com/prologic/bitcask"
 	"github.com/shamaton/msgpack/v3"
 )
@@ -58,11 +58,11 @@ func NewServiceStorage(path string) (*ServiceStorage, error) {
 // 		ErrIPNotFound
 // }
 
-func (s *ServiceStorage) PutGeoIP(value *domain.GeoIP) error {
+func (s *ServiceStorage) PutGeoIP(value *analytics.GeoIP) error {
 	return nil
 }
 
-func (s *ServiceStorage) GetIPGeo(ip string) (*domain.GeoIP, error) {
+func (s *ServiceStorage) GetIPGeo(ip string) (*analytics.GeoIP, error) {
 	key := []byte("ip:" + ip)
 
 	dbValue, errGet := s.db.Get(key)
@@ -75,7 +75,7 @@ func (s *ServiceStorage) GetIPGeo(ip string) (*domain.GeoIP, error) {
 		return nil, errGet
 	}
 
-	var result domain.GeoIP
+	var result analytics.GeoIP
 
 	if errUnmarshal := msgpack.Unmarshal(dbValue, &result); errUnmarshal != nil {
 		return nil,

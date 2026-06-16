@@ -6,17 +6,17 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/TudorHulban/analytics77/domain"
+	"github.com/TudorHulban/analytics77/domain/analytics"
 )
 
 type DataCenter struct {
-	data map[string]*domain.Registry
+	data map[string]*analytics.Registry
 	mu   sync.RWMutex
 }
 
 func NewDataCenter() *DataCenter {
 	return &DataCenter{
-		data: map[string]*domain.Registry{},
+		data: map[string]*analytics.Registry{},
 	}
 }
 
@@ -41,6 +41,7 @@ func (dc *DataCenter) String() string {
 
 	for _, k := range keys {
 		fmt.Fprintf(&b, "\n[%s]\n", k)
+
 		registryString(dc.data[k], &b)
 	}
 

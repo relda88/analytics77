@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/TudorHulban/analytics77/domain"
+	"github.com/TudorHulban/analytics77/domain/analytics"
 	requestgeo "github.com/TudorHulban/analytics77/infra/request-geo"
 	"github.com/TudorHulban/analytics77/services/sstorage"
 	lru "github.com/TudorHulban/hx-lru"
@@ -23,7 +23,7 @@ import (
 type ServiceGeo struct {
 	apiKeyGeolocation string
 
-	cache          *lru.CacheOneLRU[string, domain.GeoIP]
+	cache          *lru.CacheOneLRU[string, analytics.GeoIP]
 	serviceStorage *sstorage.ServiceStorage
 	httpClient     *http.Client
 }
@@ -41,7 +41,7 @@ func NewServiceGeo(params *ParamsNewServiceGeo, service *sstorage.ServiceStorage
 	return &ServiceGeo{
 			apiKeyGeolocation: params.APIKeyGeolocation,
 
-			cache: lru.NewCacheOneLRU[string, domain.GeoIP](
+			cache: lru.NewCacheOneLRU[string, analytics.GeoIP](
 				&lru.ParamsNewCacheLRU{
 					TTL:      14 * 24 * time.Hour,
 					Capacity: 5000,
@@ -55,7 +55,7 @@ func NewServiceGeo(params *ParamsNewServiceGeo, service *sstorage.ServiceStorage
 		nil
 }
 
-func (s *ServiceGeo) GetIPGeo(ip string) (*domain.GeoIP, error) {
+func (s *ServiceGeo) GetIPGeo(ip string) (*analytics.GeoIP, error) {
 	// 1. Hot cache
 	if cacheValue, errGetLRU := s.cache.Get(ip); errGetLRU == nil {
 		return cacheValue,

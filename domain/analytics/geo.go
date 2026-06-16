@@ -1,4 +1,4 @@
-package domain
+package analytics
 
 type GeoIP struct {
 	Location struct {

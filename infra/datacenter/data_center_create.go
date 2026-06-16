@@ -1,7 +1,7 @@
 package datacenter
 
 import (
-	"github.com/TudorHulban/analytics77/domain"
+	"github.com/TudorHulban/analytics77/domain/analytics"
 	"github.com/TudorHulban/analytics77/shared"
 )
 
@@ -32,7 +32,7 @@ func (dc *DataCenter) AddEvents(events ...*shared.ParamsAddEvent) []error {
 
 		registrySite, exists := dc.data[event.SiteKey]
 		if !exists {
-			registrySite = &domain.Registry{}
+			registrySite = &analytics.Registry{}
 
 			dc.data[event.SiteKey] = registrySite
 		}

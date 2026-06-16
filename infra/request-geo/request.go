@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/TudorHulban/analytics77/domain"
+	"github.com/TudorHulban/analytics77/domain/analytics"
 )
 
 type ParamsGetLocationByIP struct {
@@ -16,7 +16,7 @@ type ParamsGetLocationByIP struct {
 	IPAddress string
 }
 
-func GetLocationByIP(params *ParamsGetLocationByIP) (*domain.GeoIP, error) {
+func GetLocationByIP(params *ParamsGetLocationByIP) (*analytics.GeoIP, error) {
 	// 1. Construct the URL safely
 	baseURL, errParse := url.Parse("https://api.ipgeolocation.io/v3/ipgeo")
 	if errParse != nil {
@@ -44,7 +44,7 @@ func GetLocationByIP(params *ParamsGetLocationByIP) (*domain.GeoIP, error) {
 	}
 
 	// 4. Decode the JSON stream directly into the struct (more efficient than io.ReadAll)
-	var geoData domain.GeoIP
+	var geoData analytics.GeoIP
 
 	if errDecoder := json.NewDecoder(resp.Body).Decode(&geoData); errDecoder != nil {
 		return nil,

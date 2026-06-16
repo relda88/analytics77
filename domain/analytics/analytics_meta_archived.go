@@ -1,4 +1,4 @@
-package domain
+package analytics
 
 type MetaArchived[T comparable] struct {
 	Names  [7]T
