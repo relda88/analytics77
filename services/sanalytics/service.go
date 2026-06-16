@@ -4,13 +4,14 @@ import (
 	"fmt"
 
 	"github.com/TudorHulban/analytics77/helpers"
+	"github.com/TudorHulban/analytics77/infra/datacenter"
 	"github.com/TudorHulban/analytics77/services/sgeo"
 	"github.com/TudorHulban/analytics77/shared"
 )
 
 // TODO: add methods to update the DST moments
 type ServiceAnalytics struct {
-	DC      *DataCenter
+	DC      *datacenter.DataCenter
 	offsets *helpers.TimestampOffsets
 
 	serviceGeo *sgeo.ServiceGeo
@@ -22,7 +23,7 @@ type PiersNewServiceAnalytics struct {
 
 func NewServiceAnalytics(piers *PiersNewServiceAnalytics, offsets *helpers.TimestampOffsets) *ServiceAnalytics {
 	return &ServiceAnalytics{
-		DC:         NewDataCenter(),
+		DC:         datacenter.NewDataCenter(),
 		serviceGeo: piers.ServiceGeo,
 
 		offsets: offsets,
@@ -62,7 +63,7 @@ func (s *ServiceAnalytics) RecordEvents(events shared.Requests) ([]error, []erro
 			nil
 	}
 
-	errorsProcess := s.DC.addEvents(validEvents...)
+	errorsProcess := s.DC.AddEvents(validEvents...)
 
 	return errorsTransformation, errorsProcess
 }

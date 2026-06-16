@@ -1,4 +1,4 @@
-package sanalytics
+package datacenter
 
 import (
 	"fmt"

@@ -1,11 +1,11 @@
-package sanalytics
+package datacenter
 
 import (
 	"github.com/TudorHulban/analytics77/domain"
 	"github.com/TudorHulban/analytics77/shared"
 )
 
-func (dc *DataCenter) addEvents(events ...*shared.ParamsAddEvent) []error {
+func (dc *DataCenter) AddEvents(events ...*shared.ParamsAddEvent) []error {
 	errorsBatch := make([]error, 0)
 	indexesNoError := make([]int, 0, len(events))
 
