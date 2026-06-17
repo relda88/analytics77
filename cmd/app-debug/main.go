@@ -1,3 +1,85 @@
 package main
 
-func main() {}
+import (
+	"encoding/gob"
+	"fmt"
+	"net"
+	"os"
+
+	"github.com/TudorHulban/analytics77/fixtures"
+	"github.com/TudorHulban/analytics77/infra/initialization"
+	goerrors "github.com/TudorHulban/go-errors"
+)
+
+const pathConfig = "../.config"
+
+func main() {
+	if len(os.Args) < 2 {
+		fmt.Println(
+			"Error: Please provide an IP address as the first argument.",
+		)
+		fmt.Println(
+			"Usage: go run main.go <IP_ADDRESS>",
+		)
+
+		os.Exit(
+			goerrors.OSExitForApplicationIssues,
+		)
+	}
+
+	ipRaw := os.Args[1]
+
+	ip := net.ParseIP(ipRaw)
+	if ip == nil {
+		fmt.Printf(
+			"Error: '%s' is not a valid IP address.\n",
+			ipRaw,
+		)
+
+		os.Exit(
+			goerrors.OSExitForApplicationIssues,
+		)
+	}
+
+	configRaw := initialization.Configuration(pathConfig)
+
+	config, errParse := extractConfiguration(configRaw)
+	if errParse != nil {
+		fmt.Printf(
+			"error extract configuration: %s\n",
+			errParse.Error(),
+		)
+
+		os.Exit(
+			goerrors.OSExitForConfigurationIssues,
+		)
+	}
+
+	connClient, errListener := net.Dial(
+		"tcp",
+		config,
+	)
+	if errListener != nil {
+		fmt.Printf(
+			"error connecting server: %s\n",
+			errListener.Error(),
+		)
+
+		os.Exit(
+			goerrors.OSExitForConfigurationIssues,
+		)
+	}
+
+	request := fixtures.NewRequest(ip.String())
+
+	if errTransmit := gob.NewEncoder(connClient).Encode(request); errTransmit != nil {
+		fmt.Printf(
+			"error encoding request: %s\n",
+			errTransmit.Error(),
+		)
+
+		os.Exit(
+			goerrors.OSExitForInfrastructureIssues,
+		)
+	}
+}

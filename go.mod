@@ -3,6 +3,7 @@ module github.com/TudorHulban/analytics77
 go 1.26
 
 require (
+	github.com/tudorhulban/go-errors v0.0.0-20250124112214-83e990f24722
 	github.com/TudorHulban/hx-lru v0.0.0-20250125144742-479ecdb82093
 	github.com/prologic/bitcask v0.3.10
 	github.com/shamaton/msgpack/v3 v3.1.2
@@ -11,7 +12,6 @@ require (
 )
 
 require (
-	github.com/TudorHulban/go-errors v0.0.0-20250124112214-83e990f24722 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/plar/go-adaptive-radix-tree v1.0.4 // indirect
