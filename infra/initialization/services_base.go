@@ -4,10 +4,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/TudorHulban/analytics77/helpers"
-	"github.com/TudorHulban/analytics77/services/sanalytics"
-	"github.com/TudorHulban/analytics77/services/sgeo"
-	"github.com/TudorHulban/analytics77/services/sstorage"
+	"github.com/tudorhulban/analytics77/helpers"
+	"github.com/tudorhulban/analytics77/services/sanalytics"
+	"github.com/tudorhulban/analytics77/services/sgeo"
+	"github.com/tudorhulban/analytics77/services/sstorage"
 )
 
 type ParamsServices struct {

@@ -3,10 +3,10 @@ package sanalytics
 import (
 	"fmt"
 
-	"github.com/TudorHulban/analytics77/helpers"
-	"github.com/TudorHulban/analytics77/infra/datacenter"
-	"github.com/TudorHulban/analytics77/services/sgeo"
-	"github.com/TudorHulban/analytics77/shared"
+	"github.com/tudorhulban/analytics77/helpers"
+	"github.com/tudorhulban/analytics77/infra/datacenter"
+	"github.com/tudorhulban/analytics77/services/sgeo"
+	"github.com/tudorhulban/analytics77/shared"
 )
 
 // TODO: add methods to update the DST moments

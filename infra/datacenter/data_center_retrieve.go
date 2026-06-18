@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TudorHulban/analytics77/helpers"
+	"github.com/tudorhulban/analytics77/helpers"
 )
 
 type ResponseRecordsPerSite map[string]uint32

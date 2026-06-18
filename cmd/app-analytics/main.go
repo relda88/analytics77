@@ -4,9 +4,9 @@ import (
 	"log"
 	"net"
 
-	"github.com/TudorHulban/analytics77/helpers"
-	"github.com/TudorHulban/analytics77/infra/initialization"
-	transporttcp "github.com/TudorHulban/analytics77/infra/transport-tcp"
+	"github.com/tudorhulban/analytics77/helpers"
+	"github.com/tudorhulban/analytics77/infra/initialization"
+	transporttcp "github.com/tudorhulban/analytics77/infra/transport-tcp"
 )
 
 func main() {

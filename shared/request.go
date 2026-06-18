@@ -9,9 +9,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/TudorHulban/analytics77/domain/analytics"
-	"github.com/TudorHulban/analytics77/helpers"
-	"github.com/TudorHulban/analytics77/services/sgeo"
+	"github.com/tudorhulban/analytics77/domain/analytics"
+	"github.com/tudorhulban/analytics77/helpers"
+	"github.com/tudorhulban/analytics77/services/sgeo"
 
 	"github.com/tudorhulban/hxhelpers"
 )

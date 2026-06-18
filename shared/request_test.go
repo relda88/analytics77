@@ -6,12 +6,12 @@ import (
 	"net/netip"
 	"testing"
 
-	"github.com/TudorHulban/analytics77/domain/analytics"
-	"github.com/TudorHulban/analytics77/helpers"
-	"github.com/TudorHulban/analytics77/services/sgeo"
-	"github.com/TudorHulban/analytics77/services/sstorage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tudorhulban/analytics77/domain/analytics"
+	"github.com/tudorhulban/analytics77/helpers"
+	"github.com/tudorhulban/analytics77/services/sgeo"
+	"github.com/tudorhulban/analytics77/services/sstorage"
 )
 
 func ForwardAnalytics(r *http.Request, encoder *gob.Encoder) error {

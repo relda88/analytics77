@@ -6,8 +6,8 @@ import (
 	"net"
 	"os"
 
-	"github.com/TudorHulban/analytics77/fixtures"
-	"github.com/TudorHulban/analytics77/infra/initialization"
+	"github.com/tudorhulban/analytics77/fixtures"
+	"github.com/tudorhulban/analytics77/infra/initialization"
 	"github.com/tudorhulban/hxerrors"
 )
 

@@ -1,9 +1,9 @@
 package sstorage
 
 import (
-	"github.com/TudorHulban/analytics77/domain/analytics"
 	"github.com/prologic/bitcask"
 	"github.com/shamaton/msgpack/v3"
+	"github.com/tudorhulban/analytics77/domain/analytics"
 )
 
 type ServiceStorage struct {

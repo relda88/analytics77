@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/netip"
 
-	"github.com/TudorHulban/analytics77/domain/analytics"
+	"github.com/tudorhulban/analytics77/domain/analytics"
 )
 
 type DayMonth uint8 // 1 - 31

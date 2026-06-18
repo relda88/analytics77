@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/TudorHulban/analytics77/shared"
+	"github.com/tudorhulban/analytics77/shared"
 )
 
 func NewRequest(withIP string) shared.Request {

@@ -5,8 +5,8 @@ import (
 	"log"
 	"net"
 
-	"github.com/TudorHulban/analytics77/services/sanalytics"
-	"github.com/TudorHulban/analytics77/shared"
+	"github.com/tudorhulban/analytics77/services/sanalytics"
+	"github.com/tudorhulban/analytics77/shared"
 )
 
 type TransportTCP struct {

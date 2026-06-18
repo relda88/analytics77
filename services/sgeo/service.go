@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/TudorHulban/analytics77/domain/analytics"
-	requestgeo "github.com/TudorHulban/analytics77/infra/request-geo"
-	"github.com/TudorHulban/analytics77/services/sstorage"
-	lru "github.com/TudorHulban/hx-lru"
+	"github.com/tudorhulban/analytics77/domain/analytics"
+	requestgeo "github.com/tudorhulban/analytics77/infra/request-geo"
+	"github.com/tudorhulban/analytics77/services/sstorage"
+	lru "github.com/tudorhulban/hx-lru"
 )
 
 // 1. Check LRU

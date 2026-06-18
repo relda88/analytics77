@@ -3,10 +3,11 @@ module github.com/tudorhulban/analytics77
 go 1.26
 
 require (
-	github.com/TudorHulban/hx-lru v0.0.0-20250125144742-479ecdb82093
 	github.com/prologic/bitcask v0.3.10
 	github.com/shamaton/msgpack/v3 v3.1.2
 	github.com/stretchr/testify v1.11.1
+	github.com/tudorhulban/hx-lru v0.0.0-20260618131954-37b17a4f088d
+	github.com/tudorhulban/hxerrors v0.0.0-20260617160104-0df5be737c3c
 	github.com/tudorhulban/hxhelpers v0.0.0-20260610124716-f43512018869
 )
 

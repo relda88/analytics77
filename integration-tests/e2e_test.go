@@ -8,13 +8,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TudorHulban/analytics77/helpers"
-	transporttcp "github.com/TudorHulban/analytics77/infra/transport-tcp"
-	"github.com/TudorHulban/analytics77/services/sanalytics"
-	"github.com/TudorHulban/analytics77/services/sgeo"
-	"github.com/TudorHulban/analytics77/services/sstorage"
-	"github.com/TudorHulban/analytics77/shared"
 	"github.com/stretchr/testify/require"
+	"github.com/tudorhulban/analytics77/helpers"
+	transporttcp "github.com/tudorhulban/analytics77/infra/transport-tcp"
+	"github.com/tudorhulban/analytics77/services/sanalytics"
+	"github.com/tudorhulban/analytics77/services/sgeo"
+	"github.com/tudorhulban/analytics77/services/sstorage"
+	"github.com/tudorhulban/analytics77/shared"
 )
 
 func TestAnalytics_E2E(t *testing.T) {

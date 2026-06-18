@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/TudorHulban/analytics77/domain/analytics"
+	"github.com/tudorhulban/analytics77/domain/analytics"
 )
 
 func monthActiveString(label string, month []analytics.DayActive, b *strings.Builder) {

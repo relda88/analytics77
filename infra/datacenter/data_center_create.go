@@ -1,8 +1,8 @@
 package datacenter
 
 import (
-	"github.com/TudorHulban/analytics77/domain/analytics"
-	"github.com/TudorHulban/analytics77/shared"
+	"github.com/tudorhulban/analytics77/domain/analytics"
+	"github.com/tudorhulban/analytics77/shared"
 )
 
 func (dc *DataCenter) AddEvents(events ...*shared.ParamsAddEvent) []error {

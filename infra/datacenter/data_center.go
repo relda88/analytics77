@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/TudorHulban/analytics77/domain/analytics"
+	"github.com/tudorhulban/analytics77/domain/analytics"
 )
 
 type DataCenter struct {

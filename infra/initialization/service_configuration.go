@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/TudorHulban/analytics77/helpers"
+	"github.com/tudorhulban/analytics77/helpers"
 	"github.com/tudorhulban/hxerrors"
 )
 
