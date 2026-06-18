@@ -1,9 +1,8 @@
-module github.com/TudorHulban/analytics77
+module github.com/tudorhulban/analytics77
 
 go 1.26
 
 require (
-	github.com/tudorhulban/go-errors v0.0.0-20250124112214-83e990f24722
 	github.com/TudorHulban/hx-lru v0.0.0-20250125144742-479ecdb82093
 	github.com/prologic/bitcask v0.3.10
 	github.com/shamaton/msgpack/v3 v3.1.2

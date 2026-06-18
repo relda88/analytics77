@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/TudorHulban/analytics77/helpers"
-	"github.com/TudorHulban/hxerrors/goerrors"
+	"github.com/tudorhulban/hxerrors"
 )
 
 func Configuration(path string) map[string]any {
@@ -16,7 +16,7 @@ func Configuration(path string) map[string]any {
 			errParse.Error(),
 		)
 
-		os.Exit(goerrors.OSExitForConfigurationIssues)
+		os.Exit(hxerrors.OSExitForConfigurationIssues)
 	}
 
 	return result

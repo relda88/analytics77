@@ -8,7 +8,7 @@ import (
 
 	"github.com/TudorHulban/analytics77/fixtures"
 	"github.com/TudorHulban/analytics77/infra/initialization"
-	goerrors "github.com/TudorHulban/go-errors"
+	"github.com/tudorhulban/hxerrors"
 )
 
 const pathConfig = "../.config"
@@ -23,7 +23,7 @@ func main() {
 		)
 
 		os.Exit(
-			goerrors.OSExitForApplicationIssues,
+			hxerrors.OSExitForApplicationIssues,
 		)
 	}
 
@@ -37,7 +37,7 @@ func main() {
 		)
 
 		os.Exit(
-			goerrors.OSExitForApplicationIssues,
+			hxerrors.OSExitForApplicationIssues,
 		)
 	}
 
@@ -51,7 +51,7 @@ func main() {
 		)
 
 		os.Exit(
-			goerrors.OSExitForConfigurationIssues,
+			hxerrors.OSExitForConfigurationIssues,
 		)
 	}
 
@@ -66,7 +66,7 @@ func main() {
 		)
 
 		os.Exit(
-			goerrors.OSExitForConfigurationIssues,
+			hxerrors.OSExitForConfigurationIssues,
 		)
 	}
 
@@ -79,7 +79,7 @@ func main() {
 		)
 
 		os.Exit(
-			goerrors.OSExitForInfrastructureIssues,
+			hxerrors.OSExitForInfrastructureIssues,
 		)
 	}
 }
