@@ -6,12 +6,11 @@ import (
 	"net"
 	"os"
 
+	"github.com/tudorhulban/analytics77/cmd"
 	"github.com/tudorhulban/analytics77/fixtures"
 	"github.com/tudorhulban/analytics77/infra/initialization"
 	"github.com/tudorhulban/hxerrors"
 )
-
-const pathConfig = "../.config"
 
 func main() {
 	if len(os.Args) < 2 {
@@ -41,9 +40,9 @@ func main() {
 		)
 	}
 
-	configRaw := initialization.Configuration(pathConfig)
+	configRaw := initialization.Configuration(cmd.PathConfig)
 
-	config, errParse := extractConfiguration(configRaw)
+	configSocket, errParse := extractConfiguration(configRaw)
 	if errParse != nil {
 		fmt.Printf(
 			"error extract configuration: %s\n",
@@ -57,7 +56,7 @@ func main() {
 
 	connClient, errListener := net.Dial(
 		"tcp",
-		config,
+		configSocket,
 	)
 	if errListener != nil {
 		fmt.Printf(
@@ -70,9 +69,9 @@ func main() {
 		)
 	}
 
-	request := fixtures.NewRequest(ip.String())
+	request := fixtures.NewRequests(ip.String())
 
-	if errTransmit := gob.NewEncoder(connClient).Encode(request); errTransmit != nil {
+	if errTransmit := gob.NewEncoder(connClient).Encode(&request); errTransmit != nil {
 		fmt.Printf(
 			"error encoding request: %s\n",
 			errTransmit.Error(),

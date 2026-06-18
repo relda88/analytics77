@@ -31,3 +31,13 @@ func NewRequest(withIP string) shared.Request {
 		OffsetUTC:     int64(offsetSecs),
 	}
 }
+
+func NewRequests(withIPs ...string) shared.Requests {
+	result := make([]shared.Request, len(withIPs))
+
+	for ix, withIP := range withIPs {
+		result[ix] = NewRequest(withIP)
+	}
+
+	return result
+}

@@ -33,9 +33,19 @@ func (s *TransportTCP) handleConnection(conn net.Conn) {
 		var batch shared.Requests
 
 		if errDecode := decoder.Decode(&batch); errDecode != nil {
+			log.Printf(
+				"gob decoder error: %s\n",
+				errDecode.Error(),
+			)
+
 			// Expected EOF or connection reset when client disconnects
 			break
 		}
+
+		log.Printf(
+			"received %d requests\n",
+			len(batch),
+		)
 
 		errsValidationEvents, errsProcessEvents := s.serviceAnalytics.RecordEvents(batch)
 		if errsValidationEvents != nil {
