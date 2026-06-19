@@ -63,6 +63,24 @@ func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*ParamsAddEve
 			)
 	}
 
+	geoInfo := analytics.GeoIP{
+		IsPrivate: true,
+	}
+
+	if !ip.IsPrivate() && !ip.IsLoopback() {
+		responseGeo, errGeo := piers.ServiceGeo.GetIPGeo(ip.String())
+		if errGeo != nil {
+			return nil,
+				fmt.Errorf(
+					"geo call for IP: %s: %w",
+					ip,
+					errGeo,
+				)
+		}
+
+		geoInfo = *responseGeo
+	}
+
 	userAgent := req.Header["User-Agent"]
 
 	var uaString string
@@ -93,16 +111,6 @@ func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*ParamsAddEve
 		browser = 0
 	}
 
-	responseGeo, errGeo := piers.ServiceGeo.GetIPGeo(ip.String())
-	if errGeo != nil {
-		return nil,
-			fmt.Errorf(
-				"geo call for IP: %s: %w",
-				ip,
-				errGeo,
-			)
-	}
-
 	offsetUTC := hxhelpers.Ternary(
 		req.OffsetUTC > 0,
 
@@ -127,18 +135,20 @@ func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*ParamsAddEve
 				host,
 				req.Host,
 			),
-			Country: responseGeo.Location.CountryCode,
-			City:    responseGeo.Location.City,
+			Country: geoInfo.Location.CountryCode,
+			City:    geoInfo.Location.City,
 
 			DayOfMonth: DayMonth(ixDay),
 			HourOfDay:  HourDay(ixHour),
 			IP:         ip,
 			Browser:    browser,
 
-			ASNOrganization: responseGeo.ASN.Organization,
+			ASNOrganization: geoInfo.ASN.Organization,
 
 			OffsetUTC:     offsetUTC,
 			TimestampUNIX: req.TimestampUNIX,
+
+			IsPrivateIP: geoInfo.IsPrivate,
 		},
 		nil
 }

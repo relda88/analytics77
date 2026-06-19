@@ -33,6 +33,7 @@ type ParamsAddEvent struct {
 
 	TimestampUNIX int64
 	OffsetUTC     int64
+	IsPrivateIP   bool
 }
 
 func (e *ParamsAddEvent) Validate() []error {

@@ -42,6 +42,7 @@ func (s *TransportTCP) handleConnection(conn net.Conn) {
 			break
 		}
 
+		// TODO: take out
 		log.Printf(
 			"received %d requests\n",
 			len(batch),

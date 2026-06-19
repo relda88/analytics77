@@ -20,7 +20,9 @@ func NewRequest(withIP string) shared.Request {
 
 		// We just instantiate an empty struct pointer to satisfy *url.URL
 		// without needing url.Parse() or error handling.
-		URL: &url.URL{Host: "localhost"},
+		URL: &url.URL{
+			Host: "localhost",
+		},
 
 		Header: map[string][]string{
 			"X-Forwarded-For": {withIP},

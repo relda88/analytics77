@@ -40,7 +40,10 @@ func GetLocationByIP(params *ParamsGetLocationByIP) (*analytics.GeoIP, error) {
 	// 3. Handle non-200 responses safely
 	if resp.StatusCode != http.StatusOK {
 		return nil,
-			fmt.Errorf("geoapify API returned status: %d", resp.StatusCode)
+			fmt.Errorf(
+				"geoapify API returned status: %d",
+				resp.StatusCode,
+			)
 	}
 
 	// 4. Decode the JSON stream directly into the struct (more efficient than io.ReadAll)

@@ -14,4 +14,6 @@ type GeoIP struct {
 		Organization string `json:"organization"`
 		Country      string `json:"country"`
 	} `json:"asn"`
+
+	IsPrivate bool `json:"is_private"` // intranet or loopback
 }
