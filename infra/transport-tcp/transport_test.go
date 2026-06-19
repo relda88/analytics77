@@ -92,7 +92,9 @@ func TestTransport_TCP(t *testing.T) {
 
 				server := NewTransportTCP(
 					listener,
-					serviceAnalytics,
+					&PiersNewTransportTCP{
+						ServiceAnalytics: serviceAnalytics,
+					},
 				)
 
 				go func() {

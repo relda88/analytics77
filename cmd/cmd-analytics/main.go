@@ -2,14 +2,11 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"net"
 	"os"
 
+	appanalytics "github.com/tudorhulban/analytics77/app-analytics"
 	"github.com/tudorhulban/analytics77/cmd"
-	"github.com/tudorhulban/analytics77/helpers"
 	"github.com/tudorhulban/analytics77/infra/initialization"
-	transporttcp "github.com/tudorhulban/analytics77/infra/transport-tcp"
 	"github.com/tudorhulban/hxerrors"
 )
 
@@ -27,11 +24,9 @@ func main() {
 		)
 	}
 
-	keyGeolocationAPI := os.Args[1]
-
 	configRaw := initialization.Configuration(cmd.PathConfig)
 
-	configPort, errParse := extractConfiguration(configRaw)
+	configuration, errParse := extractConfiguration(configRaw)
 	if errParse != nil {
 		fmt.Printf(
 			"error extract configuration: %s\n",
@@ -43,35 +38,17 @@ func main() {
 		)
 	}
 
-	listener, errListener := net.Listen(
-		"tcp",
-		fmt.Sprintf(
-			"127.0.0.1:%s",
-			configPort,
-		),
-	)
-	if errListener != nil {
-		log.Fatalf("failed to create listener: %v", errListener)
-	}
-
-	serviceAnalytics := initialization.Services(
-		&initialization.ParamsServices{
-			Offsets: helpers.TimestampOffsets{
-				OffsetUTC: -3,
-			},
-			APIKeyGeolocation: keyGeolocationAPI,
+	app := appanalytics.InitializeApp(
+		&appanalytics.ParamsInitializeApp{
+			ConfigPort:        configuration.port,
+			PathLogFile:       configuration.nameLogfile,
+			KeyGeolocationAPI: os.Args[1],
 		},
 	)
 
-	transportTCP := transporttcp.NewTransportTCP(
-		listener,
-		serviceAnalytics,
+	fmt.Println(
+		app.Start(),
 	)
 
-	if errTransportStart := transportTCP.Start(); errTransportStart != nil {
-		log.Fatalf(
-			"Fatal error running TCP server: %v",
-			errTransportStart,
-		)
-	}
+	// TODO: add gracefully shutdown support
 }

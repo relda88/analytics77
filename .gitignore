@@ -1,3 +1,5 @@
 cmd/app-analytics/config.json
 cmd/app-analytics/lock
 cmd/app-analytics/*.data
+
+*.log

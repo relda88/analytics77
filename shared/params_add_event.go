@@ -46,18 +46,20 @@ func (e *ParamsAddEvent) Validate() []error {
 		)
 	}
 
-	if len(e.Country) == 0 {
-		errs = append(
-			errs,
-			errors.New("country cannot be empty"),
-		)
-	}
+	if !e.IsPrivateIP {
+		if len(e.Country) == 0 {
+			errs = append(
+				errs,
+				errors.New("country cannot be empty"),
+			)
+		}
 
-	if len(e.City) == 0 {
-		errs = append(
-			errs,
-			errors.New("city cannot be empty"),
-		)
+		if len(e.City) == 0 {
+			errs = append(
+				errs,
+				errors.New("city cannot be empty"),
+			)
+		}
 	}
 
 	if !e.DayOfMonth.IsValid() {

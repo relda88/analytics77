@@ -6,18 +6,34 @@ import (
 	"net"
 
 	"github.com/tudorhulban/analytics77/services/sanalytics"
+	"github.com/tudorhulban/analytics77/services/slogging"
 	"github.com/tudorhulban/analytics77/shared"
+	"github.com/tudorhulban/arenalog"
 )
 
 type TransportTCP struct {
-	listener         net.Listener
+	listener net.Listener
+
 	serviceAnalytics *sanalytics.ServiceAnalytics
+	serviceLogging   *slogging.ServiceLogging
+	logContext       *arenalog.LogContext
 }
 
-func NewTransportTCP(l net.Listener, service *sanalytics.ServiceAnalytics) *TransportTCP {
+type PiersNewTransportTCP struct {
+	ServiceLogging   *slogging.ServiceLogging
+	ServiceAnalytics *sanalytics.ServiceAnalytics
+}
+
+func NewTransportTCP(l net.Listener, piers *PiersNewTransportTCP) *TransportTCP {
+	logContext := arenalog.
+		NewLogContext(piers.ServiceLogging.Logger).
+		WithRoot("transport", "TCP")
+
 	return &TransportTCP{
 		listener:         l,
-		serviceAnalytics: service,
+		serviceAnalytics: piers.ServiceAnalytics,
+		serviceLogging:   piers.ServiceLogging,
+		logContext:       logContext,
 	}
 }
 
@@ -33,10 +49,12 @@ func (s *TransportTCP) handleConnection(conn net.Conn) {
 		var batch shared.Requests
 
 		if errDecode := decoder.Decode(&batch); errDecode != nil {
-			log.Printf(
-				"gob decoder error: %s\n",
-				errDecode.Error(),
-			)
+			s.serviceLogging.
+				Logger.
+				Printf(
+					"gob decoder error: %s\n",
+					errDecode.Error(),
+				)
 
 			// Expected EOF or connection reset when client disconnects
 			break
@@ -51,14 +69,14 @@ func (s *TransportTCP) handleConnection(conn net.Conn) {
 		errsValidationEvents, errsProcessEvents := s.serviceAnalytics.RecordEvents(batch)
 		if errsValidationEvents != nil {
 			log.Printf(
-				"validation error(s) from %s: %v",
+				"handleConnection - validation error(s) from %s: %v",
 				conn.RemoteAddr(),
 				errsValidationEvents,
 			)
 		}
 		if errsProcessEvents != nil {
 			log.Printf(
-				"processing error(s) from %s: %v",
+				"handleConnection - processing error(s) from %s: %v",
 				conn.RemoteAddr(),
 				errsProcessEvents,
 			)
