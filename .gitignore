@@ -1,5 +1,5 @@
-cmd/app-analytics/config.json
-cmd/app-analytics/lock
-cmd/app-analytics/*.data
+cmd/cmd-analytics/config.json
+cmd/cmd-analytics/lock
+cmd/cmd-analytics/*.data
 
 *.log
