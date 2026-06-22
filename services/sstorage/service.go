@@ -58,7 +58,7 @@ func NewServiceStorage(path string) (*ServiceStorage, error) {
 // 		ErrIPNotFound
 // }
 
-func (s *ServiceStorage) PutGeoIP(value *analytics.GeoIP) error {
+func (*ServiceStorage) PutGeoIP(value *analytics.GeoIP) error {
 	return nil
 }
 

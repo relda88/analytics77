@@ -9,6 +9,7 @@ import (
 	"github.com/tudorhulban/analytics77/services/slogging"
 	"github.com/tudorhulban/analytics77/shared"
 	"github.com/tudorhulban/arenalog"
+	"github.com/tudorhulban/hxhelpers/piers"
 )
 
 type TransportTCP struct {
@@ -24,17 +25,23 @@ type PiersNewTransportTCP struct {
 	ServiceAnalytics *sanalytics.ServiceAnalytics
 }
 
-func NewTransportTCP(l net.Listener, piers *PiersNewTransportTCP) *TransportTCP {
+func NewTransportTCP(l net.Listener, dependencies *PiersNewTransportTCP) (*TransportTCP, error) {
+	if errValidate := piers.ValidateDependencies(dependencies); errValidate != nil {
+		return nil,
+			errValidate
+	}
+
 	logContext := arenalog.
-		NewLogContext(piers.ServiceLogging.Logger).
+		NewLogContext(dependencies.ServiceLogging.Logger).
 		WithRoot("transport", "TCP")
 
 	return &TransportTCP{
-		listener:         l,
-		serviceAnalytics: piers.ServiceAnalytics,
-		serviceLogging:   piers.ServiceLogging,
-		logContext:       logContext,
-	}
+			listener:         l,
+			serviceAnalytics: dependencies.ServiceAnalytics,
+			serviceLogging:   dependencies.ServiceLogging,
+			logContext:       logContext,
+		},
+		nil
 }
 
 func (s *TransportTCP) GetListeningAddress() string {
@@ -43,6 +50,7 @@ func (s *TransportTCP) GetListeningAddress() string {
 
 func (s *TransportTCP) handleConnection(conn net.Conn) {
 	defer conn.Close()
+
 	decoder := gob.NewDecoder(conn)
 
 	for {
@@ -74,6 +82,7 @@ func (s *TransportTCP) handleConnection(conn net.Conn) {
 				errsValidationEvents,
 			)
 		}
+
 		if errsProcessEvents != nil {
 			log.Printf(
 				"handleConnection - processing error(s) from %s: %v",

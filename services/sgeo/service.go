@@ -32,8 +32,8 @@ type ParamsNewServiceGeo struct {
 	APIKeyGeolocation string
 }
 
-func NewServiceGeo(params *ParamsNewServiceGeo, service *sstorage.ServiceStorage) (*ServiceGeo, error) {
-	if service == nil {
+func NewServiceGeo(params *ParamsNewServiceGeo, serviceStorage *sstorage.ServiceStorage) (*ServiceGeo, error) {
+	if serviceStorage == nil {
 		return nil,
 			errors.New("passed service storage is nil")
 	}
@@ -47,7 +47,7 @@ func NewServiceGeo(params *ParamsNewServiceGeo, service *sstorage.ServiceStorage
 					Capacity: 5000,
 				},
 			),
-			serviceStorage: service,
+			serviceStorage: serviceStorage,
 			httpClient: &http.Client{
 				Timeout: 5 * time.Second,
 			},

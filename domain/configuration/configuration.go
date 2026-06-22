@@ -2,8 +2,8 @@ package configuration
 
 // Configuration holds the main application configuration mapping.
 type Configuration struct {
-	Server ConfigServer `json:"server"`
 	Debug  ConfigDebug  `json:"debug"`
+	Server ConfigServer `json:"server"`
 }
 
 // ConfigServer stores the configuration for the primary application server.

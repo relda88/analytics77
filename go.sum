@@ -228,6 +228,10 @@ github.com/tudorhulban/hxerrors v0.0.0-20260617160104-0df5be737c3c h1:/2e+wBAIbV
 github.com/tudorhulban/hxerrors v0.0.0-20260617160104-0df5be737c3c/go.mod h1:hOn42e3DQQR6RKUkggdx9uaWHdUHM0bDDXxhy0s4dqQ=
 github.com/tudorhulban/hxhelpers v0.0.0-20260610124716-f43512018869 h1:hSxA+lJBPJGjlWq3ph6rwlvCzjHuAfTkma4sGKOjcQs=
 github.com/tudorhulban/hxhelpers v0.0.0-20260610124716-f43512018869/go.mod h1:V227coyOupW/OPDvMnCDOfmKWmz9hjVGASHBYBeaJTI=
+github.com/tudorhulban/hxhelpers v0.0.0-20260621141836-44d6b919b24d h1:Tu7yePrgakzUW0U+T+BEx38ORQDs3OkyWNd3J3GcQw0=
+github.com/tudorhulban/hxhelpers v0.0.0-20260621141836-44d6b919b24d/go.mod h1:T5/KxotTN+8Qqoj/FXt4mulwOzEp9HC0gUqMhHK+i0M=
+github.com/tudorhulban/hxhelpers v0.0.0-20260622100105-504224036654 h1:Ac+q9w5ezSXRQN1Kd40CNd2zyiwwF8CZK4/Lj159xs8=
+github.com/tudorhulban/hxhelpers v0.0.0-20260622100105-504224036654/go.mod h1:T5/KxotTN+8Qqoj/FXt4mulwOzEp9HC0gUqMhHK+i0M=
 github.com/ugorji/go v1.1.4/go.mod h1:uQMGLiO92mf5W77hV/PUCpI3pbzQx3CRekS0kk+RGrc=
 github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=

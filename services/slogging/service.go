@@ -69,7 +69,7 @@ func NewServiceLogging(pathLogFile string) (*ServiceLogging, func(), error) {
 
 		return nil, nil,
 			fmt.Errorf(
-				"Failed to create logger: %w",
+				"failed to create service logging: %w",
 				errCrLogger,
 			)
 	}

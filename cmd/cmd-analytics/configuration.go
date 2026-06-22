@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 )
@@ -14,7 +15,7 @@ func extractConfiguration(raw map[string]any) (*configuration, error) {
 	server, exists := raw["server"].(map[string]any)
 	if !exists {
 		return nil,
-			fmt.Errorf(
+			errors.New(
 				"invalid or missing server configuration",
 			)
 	}

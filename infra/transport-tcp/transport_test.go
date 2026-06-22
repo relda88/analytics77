@@ -83,19 +83,21 @@ func TestTransport_TCP(t *testing.T) {
 				require.NoError(t, errCrServiceGeo)
 				require.NotNil(t, serviceGeo)
 
-				serviceAnalytics := sanalytics.NewServiceAnalytics(
+				serviceAnalytics, errCrAnalytics := sanalytics.NewServiceAnalytics(
 					&sanalytics.PiersNewServiceAnalytics{
 						ServiceGeo: serviceGeo,
 					},
 					&offsets,
 				)
+				require.NoError(t, errCrAnalytics)
 
-				server := NewTransportTCP(
+				server, errCrTransport := NewTransportTCP(
 					listener,
 					&PiersNewTransportTCP{
 						ServiceAnalytics: serviceAnalytics,
 					},
 				)
+				require.NoError(t, errCrTransport)
 
 				go func() {
 					if errServerStart := server.Start(); errServerStart != nil {

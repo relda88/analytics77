@@ -1,12 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 func extractConfiguration(raw map[string]any) (string, error) {
 	debug, exists := raw["debug"].(map[string]any)
 	if !exists {
 		return "",
-			fmt.Errorf(
+			errors.New(
 				"invalid or missing debug configuration",
 			)
 	}

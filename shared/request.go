@@ -21,11 +21,13 @@ func init() {
 }
 
 type Request struct {
+	Header map[string][]string
+
 	RemoteAddr string
 	Host       string
 	Method     string
-	URL        *url.URL
-	Header     map[string][]string
+
+	URL *url.URL
 
 	TimestampUNIX int64
 	OffsetUTC     int64
@@ -36,13 +38,14 @@ type PiersAsParamsAddEvent struct {
 	ServiceGeo *sgeo.ServiceGeo
 }
 
-func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*ParamsAddEvent, error) {
-	if piers.Offsets == nil {
+func (req Request) AsParamsAddEvent(dependencies *PiersAsParamsAddEvent) (*ParamsAddEvent, error) {
+	if dependencies.Offsets == nil {
 		return nil, errors.New(
 			"AsParamsAddEvent - passed offsets is nil",
 		)
 	}
-	if piers.ServiceGeo == nil {
+
+	if dependencies.ServiceGeo == nil {
 		return nil, errors.New(
 			"AsParamsAddEvent - passed ServiceGeo is nil",
 		)
@@ -68,7 +71,7 @@ func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*ParamsAddEve
 	}
 
 	if !ip.IsPrivate() && !ip.IsLoopback() {
-		responseGeo, errGeo := piers.ServiceGeo.GetIPGeo(ip.String())
+		responseGeo, errGeo := dependencies.ServiceGeo.GetIPGeo(ip.String())
 		if errGeo != nil {
 			return nil,
 				fmt.Errorf(
@@ -115,14 +118,14 @@ func (req Request) AsParamsAddEvent(piers *PiersAsParamsAddEvent) (*ParamsAddEve
 		req.OffsetUTC > 0,
 
 		req.OffsetUTC,
-		piers.Offsets.OffsetUTC,
+		dependencies.Offsets.OffsetUTC,
 	)
 
 	ixDay, ixHour := helpers.ExtractDayAndHour(
 		req.TimestampUNIX,
 		&helpers.TimestampOffsets{
-			TimestampDSTWinter: piers.Offsets.TimestampDSTWinter,
-			TimestampDSTSpring: piers.Offsets.TimestampDSTSpring,
+			TimestampDSTWinter: dependencies.Offsets.TimestampDSTWinter,
+			TimestampDSTSpring: dependencies.Offsets.TimestampDSTSpring,
 
 			OffsetUTC: offsetUTC,
 		},

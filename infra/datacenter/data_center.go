@@ -30,6 +30,7 @@ func (dc *DataCenter) String() string {
 			if len(dc.data) == 1 {
 				return "y"
 			}
+
 			return "ies"
 		}())
 
@@ -37,6 +38,7 @@ func (dc *DataCenter) String() string {
 	for k := range dc.data {
 		keys = append(keys, k)
 	}
+
 	slices.Sort(keys)
 
 	for _, k := range keys {

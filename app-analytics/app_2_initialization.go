@@ -36,7 +36,7 @@ func InitializeApp(params *ParamsInitializeApp) *App {
 		os.Exit(hxerrors.OSExitForConnectivityIssues)
 	}
 
-	serviceAnalytics := initialization.Services(
+	serviceAnalytics, errInitialization := initialization.Services(
 		&initialization.ParamsServices{
 			Offsets: helpers.TimestampOffsets{
 				OffsetUTC: -3,
@@ -44,15 +44,39 @@ func InitializeApp(params *ParamsInitializeApp) *App {
 			APIKeyGeolocation: params.KeyGeolocationAPI,
 		},
 	)
+	if errInitialization != nil {
+		fmt.Printf(
+			"error create listener: %s\n",
+			errInitialization.Error(),
+		)
+
+		os.Exit(hxerrors.OSExitForConnectivityIssues)
+	}
 
 	serviceLogging, fnCloseLogging, erCrServiceLogging := slogging.NewServiceLogging(params.PathLogFile)
 	if erCrServiceLogging != nil {
 		fmt.Printf(
-			"error create listener: %s\n",
+			"error create servce logging: %s\n",
 			erCrServiceLogging.Error(),
 		)
 
 		os.Exit(hxerrors.OSExitForLoggingIssues)
+	}
+
+	transport, errCrTransport := transporttcp.NewTransportTCP(
+		listener,
+		&transporttcp.PiersNewTransportTCP{
+			ServiceLogging:   serviceLogging,
+			ServiceAnalytics: serviceAnalytics,
+		},
+	)
+	if errCrTransport != nil {
+		fmt.Printf(
+			"error create transport TCP: %s\n",
+			errCrTransport.Error(),
+		)
+
+		os.Exit(hxerrors.OSExitForConnectivityIssues)
 	}
 
 	return &App{
@@ -62,10 +86,7 @@ func InitializeApp(params *ParamsInitializeApp) *App {
 			},
 		),
 
-		transportTCP: transporttcp.NewTransportTCP(
-			listener,
-			serviceAnalytics,
-		),
+		transportTCP: transport,
 
 		serviceAnalytics: serviceAnalytics,
 		serviceLogging:   serviceLogging,

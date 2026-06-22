@@ -11,11 +11,11 @@ import (
 )
 
 type ParamsServices struct {
-	Offsets           helpers.TimestampOffsets
 	APIKeyGeolocation string
+	Offsets           helpers.TimestampOffsets
 }
 
-func Services(params *ParamsServices) *sanalytics.ServiceAnalytics {
+func Services(params *ParamsServices) (*sanalytics.ServiceAnalytics, error) {
 	log.Println("Initializing Analytics Application...")
 
 	serviceStorage, errCrServiceStorage := sstorage.NewServiceStorage(".")
@@ -43,10 +43,21 @@ func Services(params *ParamsServices) *sanalytics.ServiceAnalytics {
 		os.Exit(11)
 	}
 
-	return sanalytics.NewServiceAnalytics(
+	result, errCrServiceAnalytics := sanalytics.NewServiceAnalytics(
 		&sanalytics.PiersNewServiceAnalytics{
 			ServiceGeo: serviceGeo,
 		},
 		&params.Offsets,
 	)
+	if errCrServiceAnalytics != nil {
+		log.Printf(
+			"service analytics creation: %s",
+			errCrServiceAnalytics.Error(),
+		)
+
+		os.Exit(11)
+	}
+
+	return result,
+		nil
 }

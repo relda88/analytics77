@@ -11,7 +11,7 @@ require (
 	github.com/tudorhulban/bytearena v0.0.18-0.20260528104812-211e4a865a1e
 	github.com/tudorhulban/hx-lru v0.0.0-20260618131954-37b17a4f088d
 	github.com/tudorhulban/hxerrors v0.0.0-20260617160104-0df5be737c3c
-	github.com/tudorhulban/hxhelpers v0.0.0-20260610124716-f43512018869
+	github.com/tudorhulban/hxhelpers v0.0.0-20260622100105-504224036654
 )
 
 require (

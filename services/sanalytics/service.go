@@ -7,6 +7,7 @@ import (
 	"github.com/tudorhulban/analytics77/infra/datacenter"
 	"github.com/tudorhulban/analytics77/services/sgeo"
 	"github.com/tudorhulban/analytics77/shared"
+	"github.com/tudorhulban/hxhelpers/piers"
 )
 
 // TODO: add methods to update the DST moments
@@ -21,13 +22,19 @@ type PiersNewServiceAnalytics struct {
 	ServiceGeo *sgeo.ServiceGeo
 }
 
-func NewServiceAnalytics(piers *PiersNewServiceAnalytics, offsets *helpers.TimestampOffsets) *ServiceAnalytics {
-	return &ServiceAnalytics{
-		DC:         datacenter.NewDataCenter(),
-		serviceGeo: piers.ServiceGeo,
-
-		offsets: offsets,
+func NewServiceAnalytics(dependencies *PiersNewServiceAnalytics, offsets *helpers.TimestampOffsets) (*ServiceAnalytics, error) {
+	if errValidate := piers.ValidateDependencies(dependencies); errValidate != nil {
+		return nil,
+			errValidate
 	}
+
+	return &ServiceAnalytics{
+			DC:         datacenter.NewDataCenter(),
+			serviceGeo: dependencies.ServiceGeo,
+
+			offsets: offsets,
+		},
+		nil
 }
 
 // RecordEvents returns transformation and validation / processing errors.

@@ -8,22 +8,23 @@ type MetricActive struct {
 	RecordsPerPeriod atomic.Uint32
 
 	TopIPs       MetaActive[string]
-	TopBrowsers  MetaActive[Browser]
 	TopASN       MetaActive[string]
 	TopCountries MetaActive[string]
 	TopCities    MetaActive[string]
 	TopURL       MetaActive[string]
+
+	TopBrowsers MetaActive[Browser]
 }
 
 type MetricArchived struct {
-	RecordsPerPeriod uint32
-
 	TopIPs       MetaArchived[string]
-	TopBrowsers  MetaArchived[Browser]
 	TopASN       MetaArchived[string]
 	TopCountries MetaArchived[string]
 	TopCities    MetaArchived[string]
 	TopURL       MetaArchived[string]
+	TopBrowsers  MetaArchived[Browser]
+
+	RecordsPerPeriod uint32
 }
 
 type (

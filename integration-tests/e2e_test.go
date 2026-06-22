@@ -13,6 +13,7 @@ import (
 	transporttcp "github.com/tudorhulban/analytics77/infra/transport-tcp"
 	"github.com/tudorhulban/analytics77/services/sanalytics"
 	"github.com/tudorhulban/analytics77/services/sgeo"
+	"github.com/tudorhulban/analytics77/services/slogging"
 	"github.com/tudorhulban/analytics77/services/sstorage"
 	"github.com/tudorhulban/analytics77/shared"
 )
@@ -23,6 +24,11 @@ func TestAnalytics_E2E(t *testing.T) {
 	}
 
 	apiKey := ""
+
+	serviceLogging, fnCloseLogging, erCrServiceLogging := slogging.NewServiceLogging(".")
+	require.NoError(t, erCrServiceLogging)
+
+	defer fnCloseLogging()
 
 	serviceStorage, errCrServiceStorage := sstorage.NewServiceStorage(".")
 	require.NoError(t, errCrServiceStorage)
@@ -37,12 +43,13 @@ func TestAnalytics_E2E(t *testing.T) {
 	require.NoError(t, errCrServiceGeo)
 	require.NotNil(t, serviceGeo)
 
-	serviceAnalytics := sanalytics.NewServiceAnalytics(
+	serviceAnalytics, errCrServiceAnalytics := sanalytics.NewServiceAnalytics(
 		&sanalytics.PiersNewServiceAnalytics{
 			ServiceGeo: serviceGeo,
 		},
 		&offsetsROU,
 	)
+	require.NoError(t, errCrServiceAnalytics)
 	require.NotNil(t, serviceAnalytics)
 
 	dummyURL, _ := url.Parse("https://example.com/analytics")
@@ -92,10 +99,14 @@ func TestAnalytics_E2E(t *testing.T) {
 				listener, errListener := net.Listen("tcp", "127.0.0.1:0")
 				require.NoError(t, errListener)
 
-				transportTCP := transporttcp.NewTransportTCP(
+				transportTCP, errCrTransport := transporttcp.NewTransportTCP(
 					listener,
-					serviceAnalytics,
+					&transporttcp.PiersNewTransportTCP{
+						ServiceLogging:   serviceLogging,
+						ServiceAnalytics: serviceAnalytics,
+					},
 				)
+				require.NoError(t, errCrTransport)
 
 				go func() {
 					if errServerStart := transportTCP.Start(); errServerStart != nil {

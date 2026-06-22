@@ -4,11 +4,13 @@ type ServiceConfiguration struct {
 	pathConfiguration string
 }
 
-func NewServiceConfiguration() (*ServiceConfiguration, error) {
-	return &ServiceConfiguration{},
+func NewServiceConfiguration(pathConfiguration string) (*ServiceConfiguration, error) {
+	return &ServiceConfiguration{
+			pathConfiguration: pathConfiguration,
+		},
 		nil
 }
 
-func (s *ServiceConfiguration) Get() map[string]any {
+func (*ServiceConfiguration) Get() map[string]any {
 	return map[string]any{}
 }

@@ -7,7 +7,7 @@ type TimestampOffsets struct {
 	TimestampDSTSpring int64 // Epoch when DST starts (springs forward to summer time)
 }
 
-func ExtractDayAndHour(timestampUTC int64, offsets *TimestampOffsets) (day int, hour int) {
+func ExtractDayAndHour(timestampUTC int64, offsets *TimestampOffsets) (int, int) {
 	// Start with base timestamp + standard offset
 	localTimestamp := timestampUTC + offsets.OffsetUTC
 
@@ -18,7 +18,7 @@ func ExtractDayAndHour(timestampUTC int64, offsets *TimestampOffsets) (day int, 
 	}
 
 	totalHours := localTimestamp / 3600
-	hour = int(totalHours % 24)
+	hour := int(totalHours % 24)
 
 	// Handle Go's truncated division behavior on negative local timestamps
 	if hour < 0 {
@@ -45,7 +45,7 @@ func ExtractDayAndHour(timestampUTC int64, offsets *TimestampOffsets) (day int, 
 	doy := doe - (365*yoe + yoe/4 - yoe/100)
 
 	mp := (5*doy + 2) / 153
-	day = int(doy - (153*mp+2)/5 + 1)
+	day := int(doy - (153*mp+2)/5 + 1)
 
 	return day, hour
 }

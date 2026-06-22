@@ -48,11 +48,13 @@ func TestRequest_AsParamsAddEvent(t *testing.T) {
 	}
 
 	tests := []struct {
-		name        string
 		req         Request
-		piers       *PiersAsParamsAddEvent
-		wantErr     bool
+		name        string
 		errContains string
+
+		piers *PiersAsParamsAddEvent
+
+		wantErr bool
 
 		validate func(t *testing.T, res *ParamsAddEvent)
 	}{
@@ -100,6 +102,8 @@ func TestRequest_AsParamsAddEvent(t *testing.T) {
 			},
 			wantErr: false,
 			validate: func(t *testing.T, res *ParamsAddEvent) {
+				t.Helper()
+
 				assert.Equal(t,
 					"some-site.eu",
 					res.SiteKey,
@@ -140,6 +144,8 @@ func TestRequest_AsParamsAddEvent(t *testing.T) {
 			},
 			wantErr: false,
 			validate: func(t *testing.T, res *ParamsAddEvent) {
+				t.Helper()
+
 				assert.Equal(t,
 					"82.77.237.38",
 					res.SiteKey,
@@ -160,6 +166,8 @@ func TestRequest_AsParamsAddEvent(t *testing.T) {
 			},
 			wantErr: false,
 			validate: func(t *testing.T, res *ParamsAddEvent) {
+				t.Helper()
+
 				assert.Equal(t, analytics.Browser(0), res.Browser)
 			},
 		},
@@ -173,6 +181,7 @@ func TestRequest_AsParamsAddEvent(t *testing.T) {
 
 				if tc.wantErr {
 					require.Error(t, errTransformation)
+
 					if tc.errContains != "" {
 						assert.Contains(t, errTransformation.Error(), tc.errContains)
 					}
