@@ -15,4 +15,6 @@ type App struct {
 	serviceAnalytics *sanalytics.ServiceAnalytics
 
 	fnFreeResources func()
+
+	portHTTP string
 }
