@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
+
+	"github.com/tudorhulban/analytics77/cmd"
 )
 
 func extractConfiguration(raw map[string]any) (string, error) {
@@ -25,7 +27,7 @@ func extractConfiguration(raw map[string]any) (string, error) {
 			)
 	}
 
-	port, couldCastPort := debug["port"].(float64)
+	port, couldCastPort := debug[cmd.PortRPC].(float64)
 	if !couldCastPort {
 		return "",
 			fmt.Errorf(

@@ -1,26 +1,32 @@
 package initialization
 
 import (
-	"log"
 	"os"
 
 	"github.com/tudorhulban/analytics77/helpers"
 	"github.com/tudorhulban/analytics77/services/sanalytics"
 	"github.com/tudorhulban/analytics77/services/sgeo"
+	"github.com/tudorhulban/analytics77/services/slogging"
 	"github.com/tudorhulban/analytics77/services/sstorage"
 )
 
 type ParamsServices struct {
 	APIKeyGeolocation string
 	Offsets           helpers.TimestampOffsets
+
+	ServiceLogging *slogging.ServiceLogging
 }
 
 func Services(params *ParamsServices) (*sanalytics.ServiceAnalytics, error) {
-	log.Println("Initializing Analytics Application...")
+	params.
+		ServiceLogging.
+		Logger.Print("Initializing Analytics Application...")
 
 	serviceStorage, errCrServiceStorage := sstorage.NewServiceStorage(".")
 	if errCrServiceStorage != nil {
-		log.Printf(
+		params.
+			ServiceLogging.
+			Logger.Printf(
 			"service geo creation: %s\n",
 			errCrServiceStorage.Error(),
 		)
@@ -35,7 +41,9 @@ func Services(params *ParamsServices) (*sanalytics.ServiceAnalytics, error) {
 		serviceStorage,
 	)
 	if errCrServiceGeo != nil {
-		log.Printf(
+		params.
+			ServiceLogging.
+			Logger.Printf(
 			"service geo creation: %s",
 			errCrServiceGeo.Error(),
 		)
@@ -50,7 +58,9 @@ func Services(params *ParamsServices) (*sanalytics.ServiceAnalytics, error) {
 		&params.Offsets,
 	)
 	if errCrServiceAnalytics != nil {
-		log.Printf(
+		params.
+			ServiceLogging.
+			Logger.Printf(
 			"service analytics creation: %s",
 			errCrServiceAnalytics.Error(),
 		)

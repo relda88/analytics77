@@ -40,7 +40,9 @@ func main() {
 
 	app := appanalytics.InitializeApp(
 		&appanalytics.ParamsInitializeApp{
-			ConfigPort:        configuration.port,
+			ConfigPortRPC:  configuration.portRPC,
+			ConfigPortHTTP: configuration.portHTTP,
+
 			PathLogFile:       configuration.nameLogfile,
 			KeyGeolocationAPI: os.Args[1],
 		},

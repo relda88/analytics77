@@ -3,12 +3,14 @@ package slogging
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"runtime"
 
 	"github.com/tudorhulban/arenalog"
 	"github.com/tudorhulban/bytearena"
 	"github.com/tudorhulban/bytearena/helpers"
+	"github.com/tudorhulban/hxhelpers"
 )
 
 type ServiceLogging struct {
@@ -16,20 +18,33 @@ type ServiceLogging struct {
 }
 
 // NewServiceLogging provides a closing function.
-func NewServiceLogging(pathLogFile string) (*ServiceLogging, func(), error) {
-	fileHTTPServer, errFileHTTP := os.OpenFile(
-		pathLogFile,
-		os.O_APPEND|os.O_CREATE|os.O_WRONLY,
-		0644,
-	)
-	if errFileHTTP != nil {
-		return nil, nil,
-			errFileHTTP
+func NewServiceLogging(pathLogFile string, writer ...io.Writer) (*ServiceLogging, func(), error) {
+	var fileHTTPServer *os.File
+	var errFileHTTP error
+
+	if len(writer) != 1 {
+		fileHTTPServer, errFileHTTP = os.OpenFile(
+			pathLogFile,
+			os.O_APPEND|os.O_CREATE|os.O_WRONLY,
+			0644,
+		)
+		if errFileHTTP != nil {
+			return nil, nil,
+				errFileHTTP
+		}
 	}
 
 	ingestor, errCrIngestor := bytearena.NewIngestor(
 		bytearena.Size100K(),
-		fileHTTPServer,
+		hxhelpers.TernaryLazy[io.Writer](
+			len(writer) == 1,
+			func() io.Writer {
+				return writer[0]
+			},
+			func() io.Writer {
+				return fileHTTPServer
+			},
+		),
 
 		helpers.TernaryWithValueIn(
 			[]int{1},

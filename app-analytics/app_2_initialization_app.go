@@ -14,7 +14,9 @@ import (
 )
 
 type ParamsInitializeApp struct {
-	ConfigPort        string
+	ConfigPortRPC  string
+	ConfigPortHTTP string
+
 	KeyGeolocationAPI string
 	PathLogFile       string
 }
@@ -24,7 +26,7 @@ func InitializeApp(params *ParamsInitializeApp) *App {
 		"tcp",
 		fmt.Sprintf(
 			"127.0.0.1:%s",
-			params.ConfigPort,
+			params.ConfigPortRPC,
 		),
 	)
 	if errListener != nil {
@@ -36,12 +38,24 @@ func InitializeApp(params *ParamsInitializeApp) *App {
 		os.Exit(hxerrors.OSExitForConnectivityIssues)
 	}
 
+	serviceLogging, fnCloseLogging, erCrServiceLogging := slogging.NewServiceLogging(params.PathLogFile, os.Stdout)
+	if erCrServiceLogging != nil {
+		fmt.Printf(
+			"error create servce logging: %s\n",
+			erCrServiceLogging.Error(),
+		)
+
+		os.Exit(hxerrors.OSExitForLoggingIssues)
+	}
+
 	serviceAnalytics, errInitialization := initialization.Services(
 		&initialization.ParamsServices{
 			Offsets: helpers.TimestampOffsets{
 				OffsetUTC: -3,
 			},
 			APIKeyGeolocation: params.KeyGeolocationAPI,
+
+			ServiceLogging: serviceLogging,
 		},
 	)
 	if errInitialization != nil {
@@ -53,17 +67,7 @@ func InitializeApp(params *ParamsInitializeApp) *App {
 		os.Exit(hxerrors.OSExitForConnectivityIssues)
 	}
 
-	serviceLogging, fnCloseLogging, erCrServiceLogging := slogging.NewServiceLogging(params.PathLogFile)
-	if erCrServiceLogging != nil {
-		fmt.Printf(
-			"error create servce logging: %s\n",
-			erCrServiceLogging.Error(),
-		)
-
-		os.Exit(hxerrors.OSExitForLoggingIssues)
-	}
-
-	transport, errCrTransport := transporttcp.NewTransportTCP(
+	transportTCP, errCrTransport := transporttcp.NewTransportTCP(
 		listener,
 		&transporttcp.PiersNewTransportTCP{
 			ServiceLogging:   serviceLogging,
@@ -86,11 +90,13 @@ func InitializeApp(params *ParamsInitializeApp) *App {
 			},
 		),
 
-		transportTCP: transport,
+		transportTCP: transportTCP,
 
 		serviceAnalytics: serviceAnalytics,
 		serviceLogging:   serviceLogging,
 
 		fnFreeResources: fnCloseLogging,
+
+		portHTTP: params.ConfigPortHTTP,
 	}
 }

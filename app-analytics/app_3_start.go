@@ -19,14 +19,6 @@ func (a *App) Start() error {
 
 	a.serviceLogging.Logger.Info(messageStart)
 
-	routesMiddleware := []string{
-		RoutesAll,
-	}
-
-	a.transportHTTP.Use(
-		routesMiddleware,
-	)
-
 	InitializeTransportRoutes(a)
 
 	chError := make(chan error, 2)

@@ -4,10 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+
+	"github.com/tudorhulban/analytics77/cmd"
 )
 
 type configuration struct {
-	port        string
+	portRPC  string
+	portHTTP string
+
 	nameLogfile string
 }
 
@@ -22,12 +26,21 @@ func extractConfiguration(raw map[string]any) (*configuration, error) {
 
 	// Go defaults JSON numbers to float64.
 	// Type assertions return the zero-value (empty string / 0) if they fail.
-	port, couldCastPort := server["port"].(float64)
-	if !couldCastPort {
+	portRPC, couldCastPortRPC := server[cmd.PortRPC].(float64)
+	if !couldCastPortRPC {
 		return nil,
 			fmt.Errorf(
-				"invalid port as %v",
-				server["port"],
+				"invalid port RPC as %v",
+				server[cmd.PortRPC],
+			)
+	}
+
+	portHTTP, couldCastPortHTTP := server[cmd.PortHTTP].(float64)
+	if !couldCastPortHTTP {
+		return nil,
+			fmt.Errorf(
+				"invalid port HTTP as %v",
+				server[cmd.PortHTTP],
 			)
 	}
 
@@ -41,7 +54,8 @@ func extractConfiguration(raw map[string]any) (*configuration, error) {
 	}
 
 	return &configuration{
-			port:        strconv.Itoa(int(port)),
+			portRPC:     strconv.Itoa(int(portRPC)),
+			portHTTP:    strconv.Itoa(int(portHTTP)),
 			nameLogfile: nameLogfile,
 		},
 		nil
