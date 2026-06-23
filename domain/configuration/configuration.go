@@ -13,6 +13,6 @@ type ConfigServer struct {
 
 // ConfigDebug stores the configuration for the debugging interface.
 type ConfigDebug struct {
-	Port int    `json:"port"`
 	Host string `json:"host"`
+	Port int    `json:"port"`
 }

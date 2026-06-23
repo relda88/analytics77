@@ -25,18 +25,25 @@ func (dc *DataCenter) String() string {
 	defer dc.mu.RUnlock()
 
 	var b strings.Builder
-	fmt.Fprintf(&b, "DataCenter: %d registr%s\n", len(dc.data),
+
+	fmt.Fprintf(
+		&b,
+		"DataCenter: %d registr%s\n",
+
+		len(dc.data),
 		func() string {
 			if len(dc.data) == 1 {
 				return "y"
 			}
 
 			return "ies"
-		}())
+		}(),
+	)
 
 	keys := make([]string, 0, len(dc.data))
-	for k := range dc.data {
-		keys = append(keys, k)
+
+	for key := range dc.data {
+		keys = append(keys, key)
 	}
 
 	slices.Sort(keys)

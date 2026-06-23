@@ -19,8 +19,10 @@ type ServiceLogging struct {
 
 // NewServiceLogging provides a closing function.
 func NewServiceLogging(pathLogFile string, writer ...io.Writer) (*ServiceLogging, func(), error) {
-	var fileHTTPServer *os.File
-	var errFileHTTP error
+	var (
+		fileHTTPServer *os.File
+		errFileHTTP    error
+	)
 
 	if len(writer) != 1 {
 		fileHTTPServer, errFileHTTP = os.OpenFile(

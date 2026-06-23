@@ -2,7 +2,6 @@ package transporttcp
 
 import (
 	"encoding/gob"
-	"log"
 	"net"
 
 	"github.com/tudorhulban/analytics77/services/sanalytics"
@@ -15,9 +14,10 @@ import (
 type TransportTCP struct {
 	listener net.Listener
 
-	serviceAnalytics *sanalytics.ServiceAnalytics
 	serviceLogging   *slogging.ServiceLogging
-	logContext       *arenalog.LogContext
+	serviceAnalytics *sanalytics.ServiceAnalytics
+
+	logContext *arenalog.LogContext
 }
 
 type PiersNewTransportTCP struct {
@@ -51,53 +51,66 @@ func (s *TransportTCP) GetListeningAddress() string {
 func (s *TransportTCP) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
+	// 1. Create decoder for this specific payload
 	decoder := gob.NewDecoder(conn)
 
-	for {
-		var batch shared.Requests
+	var batch shared.Requests
 
-		if errDecode := decoder.Decode(&batch); errDecode != nil {
-			s.serviceLogging.
-				Logger.
-				Printf(
-					"gob decoder error: %s\n",
-					errDecode.Error(),
-				)
+	// 2. Expect exactly ONE decode operation
+	if errDecode := decoder.Decode(&batch); errDecode != nil {
+		s.serviceLogging.
+			Logger.
+			Printf(
+				"failed to decode payload from %s: %s\n",
+				conn.RemoteAddr(),
+				errDecode.Error(),
+			)
 
-			// Expected EOF or connection reset when client disconnects
-			break
-		}
+		return // Exit immediately, defer handles the connection close
+	}
 
-		// TODO: take out
-		log.Printf(
-			"received %d requests\n",
+	s.serviceLogging.
+		Logger.
+		Printf(
+			"received %d request(s) from %s\n",
 			len(batch),
+			conn.RemoteAddr(),
 		)
 
-		errsValidationEvents, errsProcessEvents := s.serviceAnalytics.RecordEvents(batch)
-		if errsValidationEvents != nil {
-			log.Printf(
-				"handleConnection - validation error(s) from %s: %v",
+	// 3. Process the data
+	errsValidationEvents, errsProcessEvents := s.serviceAnalytics.RecordEvents(batch)
+	if len(errsValidationEvents) > 0 {
+		s.serviceLogging.
+			Logger.
+			Printf(
+				"handleConnection - validation error(s)(%d) from %s: %v",
+				len(errsValidationEvents),
 				conn.RemoteAddr(),
 				errsValidationEvents,
 			)
-		}
 
-		if errsProcessEvents != nil {
-			log.Printf(
-				"handleConnection - processing error(s) from %s: %v",
+		return
+	}
+
+	if len(errsProcessEvents) > 0 {
+		s.serviceLogging.
+			Logger.
+			Printf(
+				"handleConnection - processing error(s)(%d) from %s: %v",
+				len(errsProcessEvents),
 				conn.RemoteAddr(),
 				errsProcessEvents,
 			)
-		}
 	}
 }
 
 func (s *TransportTCP) Start() error {
-	log.Printf(
-		"TCP transport server listening on %s",
-		s.listener.Addr().String(),
-	)
+	s.serviceLogging.
+		Logger.
+		Printf(
+			"TCP transport server listening on %s",
+			s.listener.Addr().String(),
+		)
 
 	for {
 		conn, errListenAccept := s.listener.Accept()

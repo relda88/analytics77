@@ -81,4 +81,6 @@ func main() {
 			hxerrors.OSExitForInfrastructureIssues,
 		)
 	}
+
+	_ = connClient.Close()
 }
