@@ -6,12 +6,20 @@ import (
 )
 
 func (dc *DataCenter) AddEvents(events ...*shared.ParamsAddEvent) []error {
+	if len(events) == 0 {
+		return nil
+	}
+
 	errorsBatch := make([]error, 0)
 	indexesNoError := make([]int, 0, len(events))
 
 	var hasErrors bool
 
 	for ix, event := range events {
+		if event == nil {
+			continue
+		}
+
 		if errorsValidation := event.Validate(); errorsValidation != nil {
 			hasErrors = true
 

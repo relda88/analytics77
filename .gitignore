@@ -2,4 +2,5 @@ cmd/cmd-analytics/config.json
 cmd/cmd-analytics/lock
 cmd/cmd-analytics/*.data
 
+.linting
 *.log
